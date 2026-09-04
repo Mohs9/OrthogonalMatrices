@@ -11,9 +11,9 @@ is a Cholesky factor and \(Q\) belongs to the orthogonal group.
 
 The optimization problem is written as
 
-\[
-Q^* = \operatorname{argmin}_{Q \in \mathcal{O}(K)} \kappa_\infty(PQ).
-\]
+$$
+Q^* = \text{argmin}_{Q \in \mathcal{O}(K)} \kappa_\infty(PQ).
+$$
 
 The proposed algorithm computes gradients or subgradients of the objective,
 projects them onto the tangent space of the orthogonal group, and updates \(Q\)
