@@ -1,0 +1,74 @@
+# Ignored files
+.ignoredir
+# Estimaciones
+#Models/**/estimation/data
+Models/**/estimation/data/old
+Models/**/estimation/*.~*
+Models/**/estimation/log
+
+# Results
+Models/**/results/fulldata/**/*.csv
+Models/**/results/plots
+Models/**/results/temp
+Models/**/results/reports/*.xlsx
+Models/**/results/reports/*.pptx
+Models/**/*.mat
+data/results/res_filename.*
+data/results/stable_models.*
+
+
+# Reportes comparativos
+Models/**/Comparativo/**/*.png
+Models/**/results/reports/Cuadros-IRF.xlsx
+Models/**/results/**/*.csv
+doc/
+
+# Presentaciones
+Models/**/results/reports/*.pptx
+Models/**/Initial_setup/presentacion
+ 
+# Temporales
+data/fulldata
+Models/**/results/reports/res_filename.txt
+Models/**/results/reports/stable_models.csv
+Models/**/results/temp
+Models/**/*.xlsx
+Models/**/*.png
+Models/**/*.pptx
+
+# Resultados Python para capturas y tablas
+src/cuadros_python/cuadros_python
+src/cuadros_python/**/*.txt
+
+# Some other folders
+plots
+temp
+tmp
+doc
+
+# Temporary files
+*snapshot*
+*.asv
+**/~$*.xlsx
+*.~f1
+
+data/results/res_filename.*
+data/results/stable_models.*
+#estimation/data/*
+estimation/log
+Models/*/results/reports/*.pptx
+*.pptx
+*.evsettings
+*.~rg
+#Models/*/estimation/**/*.csv
+
+#Quarto Outputs
+*.css
+*.html
+*.woff
+*.js
+# .vscode configuration files
+.vscode
+
+# .mat files
+scripts/**/*.mat

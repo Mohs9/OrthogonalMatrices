@@ -1,0 +1,180 @@
+---
+title: "Algorithm to fin Q matrices"
+author: ["Selection and Evaluation Team"]
+date: last-modified
+date-format: long
+engine: julia
+lang: en
+execute: 
+  daemon: 372000
+  cache: false
+  freeze: false
+  fig-width: 0.5
+  echo: false
+format:
+  html: 
+    toc: true
+    code-fold: true
+    number-sections: true
+  pdf: 
+    number-sections: true
+    toc: false
+    fig-format: png
+    keep-tex: false 
+  docx:
+    number-sections: true
+    toc: false
+    fig-dpi: 200
+    df-print: paged
+    echo: false
+crossref: 
+  title-delim: "."
+nocite: |
+    @Conditio34:online 
+
+---
+
+
+# Objective
+
+
+The objective of this document is to develop ideas for algorithms related to optimization problems. The first algorithm considered is a projected gradient and subgradient method for optimization over the space of orthogonal matrices.
+
+
+
+# Optimization problem involving orthogonal matrices
+
+The admissible set is defined as
+
+$$
+\mathcal{O}(K)
+=
+\left\{
+Q\in\mathbb{R}^{K\times K}
+:
+Q'Q=QQ'=I
+\right\}.
+$$
+
+To formulate an optimization problem over the set of orthogonal matrices, a generic factorization of the reduced-form covariance matrix can then be written as
+
+$$
+\Sigma_e
+=
+B_0^{-1}B_0^{-1'}.
+=
+PQQ'P'
+$$
+
+where  $P$ is the Cholesky factor associated with the benchmark recursive identification, and $Q\in\mathcal{O}(K)$ is an orthogonal rotation matrix.
+
+Therefore, orthogonal rotations generate alternative structural decompositions that preserve the reduced-form variance-covariance matrix. This provides the basis for defining an optimization problem over $Q$ to select a structural decomposition according to a minimum condition number of $B_0^{-1}=(PQ)$ criterion.
+
+The optimization problem can be formulated as follows: 
+
+$$
+Q^{*}= \text{argmin}_{Q\in\mathcal{O}(K)} \kappa_{\infty}(PQ),
+$${#eq-optimizationProblem}
+
+
+
+
+# Algorithm Riemman Mainfolds...
+
+
+A convenient equivalent objective is
+
+$$
+\phi(Q)
+=
+\log \|LQ\|_\infty
++
+\log \|Q'L^{-1}\|_\infty,
+$$
+
+since $(LQ)^{-1}=Q'L^{-1}$ and the logarithm preserves the minimizer.
+
+The proposed numerical procedure is:
+
+* Initialize an orthogonal matrix $Q_0$.
+
+* At iteration $k$, compute
+
+  $$
+  A_k=LQ_k,
+  \qquad
+  B_k=Q_k'L^{-1}.
+  $$
+
+* Evaluate
+
+  $$
+  g_k=\|A_k\|_\infty,
+  \qquad
+  h_k=\|B_k\|_\infty,
+  $$
+
+  so that
+
+  $$
+  \phi(Q_k)=\log g_k+\log h_k.
+  $$
+
+* Compute a Euclidean gradient or subgradient of $g_k$ and $h_k$, depending on whether the active row of the infinity norm is unique.
+
+* Combine both terms to obtain a Euclidean subgradient of the objective:
+
+  $$
+  G_k
+  =
+  \frac{G_{g,k}}{g_k}
+  +
+  \frac{G_{h,k}}{h_k}.
+  $$
+
+* Project this matrix onto the tangent space of the orthogonal group:
+
+  $$
+  \operatorname{grad}\phi(Q_k)
+  =
+  G_k
+  -
+  Q_k\operatorname{sym}(Q_k'G_k).
+  $$
+
+* Equivalently, define
+
+  $$
+  \Omega_k
+  =
+  \operatorname{skew}(Q_k'G_k),
+  $$
+
+  so that
+
+  $$
+  \operatorname{grad}\phi(Q_k)=Q_k\Omega_k.
+  $$
+
+* Update the orthogonal matrix along a Riemannian descent direction:
+
+  $$
+  Q_{k+1}
+  =
+  Q_k\exp(-\alpha_k\Omega_k),
+  $$
+
+  where $\alpha_k$ is a step size selected, for example, by line search.
+
+* Repeat the procedure until a convergence criterion is satisfied, such as
+
+
+  $$
+  |\phi(Q_{k+1})-\phi(Q_k)|<\varepsilon.
+  $$
+
+Because the problem is non-convex and the infinity norm is non-smooth, the procedure should be repeated from several initial orthogonal matrices. The final numerical solution is selected as the candidate producing the smallest value of
+
+$$
+\kappa_\infty(LQ).
+$$
