@@ -73,9 +73,8 @@ Therefore, orthogonal rotations generate alternative structural decompositions t
 The optimization problem can be formulated as follows: 
 
 $$
-Q^{*}= \text{argmin}_{Q\in\mathcal{O}(K)} \kappa_{\infty}(PQ),
+Q^{*}= \text{argmin}_{Q\in\mathcal{O}(K)} \kappa_{p}(PQ),
 $${#eq-optimizationProblem}
-
 
 
 
@@ -109,9 +108,9 @@ The proposed numerical procedure is:
 * Evaluate
 
   $$
-  g_k=\|A_k\|_\infty,
+  g_k=\|A_k\|_p,
   \qquad
-  h_k=\|B_k\|_\infty,
+  h_k=\|B_k\|_p,
   $$
 
   so that
@@ -178,3 +177,22 @@ Because the problem is non-convex and the infinity norm is non-smooth, the proce
 $$
 \kappa_\infty(LQ).
 $$
+
+
+# Appendix {#sec-appendix .appendix}
+
+## Intuition of norms
+
+![“Unit sphere” using different $p$-norms](figs/norms.png){#fig-norms width="50%"}
+
+To understand the induced $p$-norm, we must first remember that changing the value of $p$ completely changes what we regard as a “unit sphere”—the set of vectors whose length equals 1:
+
+* **If $p=2$ (Euclidean norm):** The unit sphere is a perfectly **round ball**. We measure distance in a straight line.
+* **If $p=1$ (taxicab norm):** The unit sphere becomes a **diamond or rhombus**. Distances are measured by turning corners, as on city streets.
+* **If $p=\infty$ (maximum norm):** The unit sphere is a **square or cube**. Only the largest coordinate matters.
+
+### The Induced $p$-Norm:**
+
+1. Take the “sphere” corresponding to that particular $p$ (a diamond for $p=1$, a circumference for $p=2$, or a square for $p=\infty$).
+2. Let the matrix $A$ transform and deform that shape.
+3. The induced $p$-norm is the farthest point of the resulting transformed figure, measured according to the rules of that same $p$-norm.
