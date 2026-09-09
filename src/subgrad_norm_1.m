@@ -1,4 +1,4 @@
-function [Gphi, phi, kappa] = subgrad_cond_inf(L,Q)
+function [Gphi, phi, kappa] = subgrad_norm_1(L,Q)
 
 K = size(L,1);
 Linv = L \ eye(K);

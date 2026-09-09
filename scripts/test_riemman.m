@@ -1,4 +1,7 @@
 
+% Activar el proyecto
+activate
+
 % 1. Definir el tamaño de la matriz cuadrada (por ejemplo, 4x4)
 K = 2;
 
@@ -16,5 +19,5 @@ tol = 1e-8;
 alpha = 0.1;
 
 kappa_0 = condition_number(L*Q_0);
-[Q_ast, kappa] = riemman_algorithm(L, Q_0, alpha, maxIter, tol);
+[Q_ast, kappa] = riemman_algorithm(L, Q_0, alpha, maxIter, tol, @subgrad_norm_inf);
 

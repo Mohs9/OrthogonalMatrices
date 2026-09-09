@@ -1,4 +1,4 @@
-function [Q_new, kappa_t]= riemman_algorithm(L,Q_0,alpha, maxIter, tol)
+function [Q_new, kappa_t]= riemman_algorithm(L,Q_0,alpha, maxIter, tol, subgrad_norm)
 
 Q_t = Q_0;
 alpha_max = 0.1;
@@ -6,7 +6,7 @@ alpha_min = 1e-10;
 
 for iter = 1:maxIter
 
-    [Gphi, ~, kappa_t] = subgrad_cond_inf(L,Q_t);
+    [Gphi, ~, kappa_t] = subgrad_norm(L,Q_t);
 
     Omega = skew(Q_t' * Gphi);
 
