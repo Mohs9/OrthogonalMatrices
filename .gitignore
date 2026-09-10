@@ -9,7 +9,7 @@ data/results/stable_models.*
 # Reportes comparativos
 
 doc/
-
+*.docx
 
 
 # Some other folders
