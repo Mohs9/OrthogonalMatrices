@@ -8,13 +8,13 @@ for iter = 1:maxIter
 
     [Gphi, ~, kappa_t] = subgrad_norm(L,Q_t);
 
-    Omega = skew(Q_t' * Gphi);
+    Omega = skew( Gphi*Q_t');
 
     if norm(Omega,'fro') < tol
         break
     end
 
-    Q_new = Q_t * expm(-alpha * Omega);
+    Q_new =  expm(-alpha * Omega) * Q_t ;
 
     kappa_new = condition_number(L * Q_new);
 

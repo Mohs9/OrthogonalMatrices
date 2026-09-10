@@ -76,10 +76,122 @@ $$
 Q^{*}= \text{argmin}_{Q\in\mathcal{O}(K)} \kappa_{p}(PQ),
 $${#eq-optimizationProblem}
 
-
+where $p\in\{1,\infty\}$. The case $p=2$ is excluded because, under the Euclidean norm, $\kappa_2(PQ)=\kappa_2(P)$; hence, the objective function does not depend on $Q$.
 
 # Algorithm Riemman Mainfolds...
 
+## Gradient Descent
+
+Gradient descent is based on the idea that, for a differentiable multivariable function $f(\mathbf{x})$, the function decreases most rapidly when we move from a point $\mathbf{a}$ in the direction opposite to its gradient, that is,
+
+$$
+-\nabla f(\mathbf{a}).
+$$
+
+Therefore, starting from a point $\mathbf{a}_n$, we update it as follows:
+
+$$
+\mathbf{a}_{n+1}
+=
+\mathbf{a}_n
+-
+\eta \nabla f(\mathbf{a}_n),
+$$
+
+where $\eta > 0$ is a sufficiently small step size, also called the learning rate. Subtracting $\eta \nabla f(\mathbf{a}_n)$ means that we are moving against the direction of steepest increase, and therefore toward a local minimum.
+
+Using this idea, we begin with an initial guess $\mathbf{x}_0$ and construct a sequence of points
+
+$$
+\mathbf{x}_0, \mathbf{x}_1, \mathbf{x}_2, \ldots
+$$
+
+according to the rule
+
+$$
+\mathbf{x}_{n+1}
+=
+\mathbf{x}_n
+-
+\eta_n \nabla f(\mathbf{x}_n),
+\qquad n \geq 0.
+$$ {#eq-updatex}
+
+If the learning rates $\eta_n$ are chosen properly, the function values decrease at each iteration:
+
+$$
+f(\mathbf{x}_0)
+\geq
+f(\mathbf{x}_1)
+\geq
+f(\mathbf{x}_2)
+\geq
+\cdots.
+$$
+
+Thus, the method generates a sequence of points that moves progressively closer to a local minimum. The step size does not have to remain constant; it may change from one iteration to the next.
+
+
+
+## Riemannian Manifolds
+
+
+
+The main idea of the algorithm is to use small perturbations of an orthogonal matrix $Q$ that satisfies @eq-optimizationProblem. In this context, $f(Q) = \kappa_p(PQ)$, with the constraint $QQ'= I$. However, since this equation is subject to the constraint $QQ'=I$, a small modification must be made to the gradient $\nabla f(Q)$ that would commonly be used to take a small step toward a local minimum.
+
+For this purpose, the perturbed matrix $(Q+\varepsilon\Xi)$ is required to be orthogonal. The idea is developed as follows:
+
+$$
+(Q+\varepsilon\Xi)(Q+\varepsilon\Xi)' = QQ' + \varepsilon \Xi Q' + \varepsilon Q\Xi' + \varepsilon^2 \Xi\Xi' = I
+$$
+
+where $\Xi \in \mathrm{R}^{k\times k}$ is a direction of motion and $\varepsilon\in \mathbb{R}$ is a small perturbation, i.e., $\varepsilon \ll 1$. Hence, the last term is negligible.
+
+Therefore, we must require that $\Xi Q' + Q\Xi'=0$, or equivalently:
+$$
+\Xi Q' = -Q\Xi',
+$$
+
+Let
+$$ 
+\Omega := \Xi Q',
+$$
+
+then $\Omega$ is a skew-symmetric matrix, $\Omega=-\Omega'$. Hence, $\Xi = \Omega Q$ is a matrix in the tangent space.
+
+Thus, the tangent space at $Q$, consisting of the matrices $\Xi$, is $\text{T}_{Q} = \{\Xi = \Omega Q : \Omega = -\Omega'\}$.
+
+The optimization problem is constrained to the orthogonal group, so admissible variations of $Q$ must preserve the constraint $QQ'=I$ to first order. Directions outside $\text{T}_{Q}$ generally introduce a normal component that moves the iterate away from the manifold. Therefore, the descent direction must be chosen in the tangent space, where it represents an infinitesimal feasible motion on $\mathcal{O}(k)$. In general, the gradient $G = \nabla f(Q)$ is not necessarily an orthogonal matrix. For this reason, the Riemannian gradient must be used, keeping only the tangent component of the ordinary gradient.
+
+Moreover, every satisfy $A = \text{sym}(A)+\text{skew}(A)$^[$\text{sym}(A) = \frac{A+A'}{2}$ and $\text{skew}(A) = \frac{A-A'}{2}$] and because $Q$ is orthogonal we can write  $G = (GQ')Q$, to obtain
+
+$$
+G = \text{sym}(GQ')Q+ \text{skew}(GQ')Q,
+$$
+
+$G$ is decomposed into its normal component and its tangent component with respect to the orthogonal group. Here, $\text{skew}(GQ')$ is a skew-symmetric matrix by definition of the function $\text{skew}(A)$, so $\text{skew}(GQ')Q$ belongs to the tangent space. In this sense, the Riemannian gradient is the orthogonal projection of the Euclidean gradient onto the tangent space, i.e.:
+$$
+\nabla_{\text{R}}f(Q) := \text{Proj}_{T_Q}(G) = \text{skew}(GQ')Q = \Omega Q.
+$$
+
+
+Once the Riemannian gradient has been obtained, equation @eq-updatex can be used to update the matrix $Q$ in the direction of steepest descent, using the projection of the gradient $G$ onto the tangent space.
+
+$$
+Q_\text{new} = Q_{\text{old}}-\alpha \nabla_{\text{R}} f(Q)=Q_{\text{old}}-\alpha \Omega Q_{\text{old}} = (I-\alpha \Omega) Q_{\text{old}}
+$$
+
+Alternatively, we can use the first-order approximation $\exp(-\alpha \Omega)\approx I-\alpha \Omega$
+
+$$
+Q_\text{new} = \exp(-\alpha \Omega) Q_{\text{old}}
+$$
+
+The exponential update is used because the linear step $(I-\alpha\Omega)Q_{\text{old}}$ preserves the orthogonality constraint only to first order. Since $\Omega$ is skew-symmetric, $\exp(-\alpha\Omega)$ is an orthogonal matrix; therefore, if $Q_{\text{old}}\in\mathcal{O}(k)$, then $Q_\text{new}=\exp(-\alpha\Omega)Q_{\text{old}}$ also belongs to $\mathcal{O}(k)$. Thus, the exponential update follows the same tangent descent direction to first order while keeping the iterate on the manifold.
+
+## Procedure with Riemman Mainfolds
+
+Hence, in this section we present a brief description of the algorithm to achieve the @eq-optimizationProblem.
 
 A convenient equivalent objective is
 
@@ -91,7 +203,7 @@ $$
 \log \|Q'L^{-1}\|_\infty,
 $$
 
-since $(LQ)^{-1}=Q'L^{-1}$ and the logarithm preserves the minimizer.
+since $(LQ)^{-1}=Q'L^{-1}$ and the logarithm preserves the minimizer (idea of Riemman Manifolds is the same).
 
 The proposed numerical procedure is:
 
@@ -134,25 +246,25 @@ The proposed numerical procedure is:
 * Project this matrix onto the tangent space of the orthogonal group:
 
   $$
-  \operatorname{grad}\phi(Q_k)
+  \nabla_{\text{R}}\phi(Q_k)
   =
   G_k
   -
-  Q_k\operatorname{sym}(Q_k'G_k).
-  $$
+ \operatorname{sym}(G_kQ_k')Q_k.
+ $$
 
 * Equivalently, define
 
   $$
   \Omega_k
   =
-  \operatorname{skew}(Q_k'G_k),
+  \operatorname{skew}(G_kQ_k'),
   $$
 
   so that
 
   $$
-  \operatorname{grad}\phi(Q_k)=Q_k\Omega_k.
+ \nabla_{\text{R}}\phi(Q_k)=\Omega_k Q_k.
   $$
 
 * Update the orthogonal matrix along a Riemannian descent direction:
@@ -160,7 +272,7 @@ The proposed numerical procedure is:
   $$
   Q_{k+1}
   =
-  Q_k\exp(-\alpha_k\Omega_k),
+  \exp(-\alpha_k\Omega_k)Q_k,
   $$
 
   where $\alpha_k$ is a step size selected, for example, by line search.
@@ -191,7 +303,7 @@ To understand the induced $p$-norm, we must first remember that changing the val
 * **If $p=1$ (taxicab norm):** The unit sphere becomes a **diamond or rhombus**. Distances are measured by turning corners, as on city streets.
 * **If $p=\infty$ (maximum norm):** The unit sphere is a **square or cube**. Only the largest coordinate matters.
 
-### The Induced $p$-Norm:**
+### The Induced $p$-Norm:
 
 1. Take the “sphere” corresponding to that particular $p$ (a diamond for $p=1$, a circumference for $p=2$, or a square for $p=\infty$).
 2. Let the matrix $A$ transform and deform that shape.
