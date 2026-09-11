@@ -267,6 +267,7 @@ Q(t) = \exp(t\Omega) Q_0.
 $$
 
 with $\Omega$ **fixed** or constant.
+
 ##
 
 It remains to determine the matrix $\Omega$. Intuitively, to move in the direction of steepest descent, the continuous-time dynamics should satisfy
