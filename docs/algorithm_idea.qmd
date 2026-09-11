@@ -190,64 +190,81 @@ where $\mathbf{e}_{i^\star}$ is column vector with zeros in al entries except in
 
 If more than one row attains the maximum, or if some entries of the active row are zero, the same expression should be interpreted as a subgradient, using admissible signs and **convex combinations** over the active rows.
 
+## Continuous idea
 
+The idea is to first write the algorithm in continuous time and then transform it into a discrete form that can be computed iteratively.
 
+Here, we do not differentiate a fixed matrix $Q$; instead, we consider a smooth curve $Q(t)\in\mathcal{O}(K)$ whose entries depend on the parameter $t$.
 
-## Riemannian Manifolds
-
-
-
-The main idea of the algorithm is to use small perturbations of an orthogonal matrix $Q$ that satisfies @eq-optimizationProblem. In this context, $\phi(Q) = \text{log}(\kappa_p(PQ))$, with the constraint $QQ'= I$. However, since this equation is subject to the constraint $QQ'=I$, a small modification must be made to the gradient $\nabla \phi(Q)$ that would commonly be used to take a small step toward a local minimum.
-
-For this purpose, the perturbed matrix $(Q+\varepsilon\Xi)$ is required to be orthogonal. The idea is developed as follows:
+First, parametrize the matrix as $Q=Q(t)$ so that its orthogonality property can be exploited as follows:
 
 $$
-(Q+\varepsilon\Xi)(Q+\varepsilon\Xi)' = QQ' + \varepsilon \Xi Q' + \varepsilon Q\Xi' + \varepsilon^2 \Xi\Xi' = I
-$$
-
-where $\Xi \in \mathrm{R}^{K\times K}$ is a direction of motion and $\varepsilon\in \mathbb{R}$ is a small perturbation, i.e., $\varepsilon \ll 1$. Hence, the last term is negligible.
-
-Therefore, we must require that $\Xi Q' + Q\Xi'=0$, or equivalently:
-$$
-\Xi Q' = -Q\Xi',
-$$
-
-Let
+\dfrac{\mathrm{d}}{\mathrm{d}t}(Q(t)Q(t)') =
+\dot Q(t)Q(t)' + Q(t)\dot Q(t)' =
+\dfrac{\mathrm{d}}{\mathrm{d}t}I =0.
 $$ 
-\Omega := \Xi Q',
+
+Let $\dot Q(t)=\dfrac{\mathrm{d}}{\mathrm{d}t}Q(t)$. Then, from the previous equation, it follows that
+ 
+$$
+Q\dot{Q}'= -\dot{Q}Q'.
 $$
 
-then $\Omega$ is a skew-symmetric matrix, $\Omega=-\Omega'$. Hence, $\Xi = \Omega Q$ is a matrix in the tangent space.
-
-Thus, the tangent space at $Q$, consisting of the matrices $\Xi$, is $\text{T}_{Q} = \{\Xi = \Omega Q : \Omega = -\Omega'\}$.
-
-The optimization problem is constrained to the orthogonal group, so admissible variations of $Q$ must preserve the constraint $QQ'=I$ to first order. Directions outside $\text{T}_{Q}$ generally introduce a normal component that moves the iterate away from the manifold. Therefore, the descent direction must be chosen in the tangent space, where it represents an infinitesimal feasible motion on $\mathcal{O}(k)$. In general, the gradient $G = \nabla \phi(Q)$ is not necessarily an orthogonal matrix. For this reason, the Riemannian gradient must be used, keeping only the tangent component of the ordinary gradient.
-
-Moreover, every satisfy $A = \text{sym}(A)+\text{skew}(A)$^[$\text{sym}(A) = \frac{A+A'}{2}$ and $\text{skew}(A) = \frac{A-A'}{2}$] and because $Q$ is orthogonal we can write  $G = (GQ')Q$, to obtain
+Now define
 
 $$
-G = \text{sym}(GQ')Q+ \text{skew}(GQ')Q,
+\Omega := \dot{Q}Q'.
 $$
 
-$G$ is decomposed into its normal component and its tangent component with respect to the orthogonal group. Here, $\text{skew}(GQ')$ is a skew-symmetric matrix by definition of the function $\text{skew}(A)$, so $\text{skew}(GQ')Q$ belongs to the tangent space. In this sense, the Riemannian gradient is the orthogonal projection of the Euclidean gradient onto the tangent space, i.e.:
-$$
-\nabla_{\text{R}}f(Q) := \text{Proj}_{T_Q}(G) = \text{skew}(GQ')Q = \Omega Q.
-$$
+Then $\Omega$ is a skew-symmetric matrix, $\Omega=-\Omega'$. Thus, the tangent space at $Q$, consisting of the matrices $\mathbfsf{T}$, is $\mathbffrak{T}_{Q} = \{\mathbfsf{T} = \Omega Q : \Omega = -\Omega'\}$.
 
-
-Once the Riemannian gradient has been obtained, equation @eq-updatex can be used to update the matrix $Q$ in the direction of steepest descent, using the projection of the gradient $G$ onto the tangent space.
+Moreover, this gives the differential equation
 
 $$
-Q_\text{new} = Q_{\text{old}}-\alpha \nabla_{\text{R}} f(Q)=Q_{\text{old}}-\alpha \Omega Q_{\text{old}} = (I-\alpha \Omega) Q_{\text{old}}
+\dot{Q} = \Omega Q,
 $$
 
-Alternatively, we can use the first-order approximation $\exp(-\alpha \Omega)\approx I-\alpha \Omega$
+whose solution is
 
 $$
-Q_\text{new} = \exp(-\alpha \Omega) Q_{\text{old}}
+Q(t) = \exp(t\Omega) Q_0.
 $$
 
-The exponential update is used because the linear step $(I-\alpha\Omega)Q_{\text{old}}$ preserves the orthogonality constraint only to first order. Since $\Omega$ is skew-symmetric, $\exp(-\alpha\Omega)$ is an orthogonal matrix; therefore, if $Q_{\text{old}}\in\mathcal{O}(k)$, then $Q_\text{new}=\exp(-\alpha\Omega)Q_{\text{old}}$ also belongs to $\mathcal{O}(k)$. Thus, the exponential update follows the same tangent descent direction to first order while keeping the iterate on the manifold.
+It remains to determine the matrix $\Omega$. Intuitively, to move in the direction of steepest descent, the continuous-time dynamics should satisfy
+
+$$
+\dot{Q} = -\nabla_{\text{R}}\phi(Q).
+$$
+
+In general, the Euclidean gradient $G = \nabla \phi(Q)$ is not necessarily tangent to the orthogonal group. For this reason, the Riemannian gradient must be used, keeping only the tangent component of the Euclidean gradient.
+
+To identify the tangent component of $G$, use the decomposition $A = \operatorname{sym}(A)+\operatorname{skew}(A)$^[$\operatorname{sym}(A) = \frac{A+A'}{2}$ and $\operatorname{skew}(A) = \frac{A-A'}{2}$]. Since $Q$ is orthogonal, we can write $G = (GQ')Q$ and obtain
+
+$$
+G = \operatorname{sym}(GQ')Q+ \operatorname{skew}(GQ')Q.
+$$
+
+Therefore,
+
+$$
+\nabla_{\text{R}}\phi(Q)=\operatorname{skew}(GQ')Q.
+$$
+
+If we define $\Omega=\operatorname{skew}(GQ')$, the descent flow is
+
+$$
+\dot Q = -\Omega Q,
+$$
+
+and, over one step with $\Omega$ fixed. Passing from the continuous formulation to a discrete iterative update gives
+
+$$
+Q_\text{new} = \exp(-\alpha \operatorname{skew}(GQ'_{\text{old}})) Q_{\text{old}}.
+$$
+
+Here, $G=\nabla\phi(Q_{\text{old}})$ is the Euclidean gradient evaluated at the previous iterate $Q_{\text{old}}$.
+
+
 
 ## Procedure with Riemman Mainfolds
 
@@ -354,3 +371,5 @@ To understand the induced $p$-norm, we must first remember that changing the val
 1. Take the “sphere” corresponding to that particular $p$ (a diamond for $p=1$, a circumference for $p=2$, or a square for $p=\infty$).
 2. Let the matrix $A$ transform and deform that shape.
 3. The induced $p$-norm is the farthest point of the resulting transformed figure, measured according to the rules of that same $p$-norm.
+
+
