@@ -10,6 +10,7 @@ data/results/stable_models.*
 
 doc/
 *.docx
+*.pdf
 
 
 # Some other folders

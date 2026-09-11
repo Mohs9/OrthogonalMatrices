@@ -358,8 +358,6 @@ $$
 
 ## Intuition of norms
 
-![“Unit sphere” using different $p$-norms](figs/norms.png){#fig-norms width="50%"}
-
 To understand the induced $p$-norm, we must first remember that changing the value of $p$ completely changes what we regard as a “unit sphere”—the set of vectors whose length equals 1:
 
 * **If $p=2$ (Euclidean norm):** The unit sphere is a perfectly **round ball**. We measure distance in a straight line.
@@ -373,3 +371,5 @@ To understand the induced $p$-norm, we must first remember that changing the val
 3. The induced $p$-norm is the farthest point of the resulting transformed figure, measured according to the rules of that same $p$-norm.
 
 
+
+![“Unit sphere” using different $p$-norms](figs/norms.png){#fig-norms width="50%"}
