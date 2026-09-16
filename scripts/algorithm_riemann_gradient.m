@@ -1,5 +1,6 @@
 activate;
 
+tic;
 % Search for a good minimum by restarting the algorithm from many random
 % orthogonal initial matrices.
 
@@ -24,7 +25,7 @@ parfor i = 1:N
     Q_0 = orthogonal_matrix_generator(m, n);
 
     % Minimize the objective from this initial matrix.
-    [Q_ast, kappa] = riemman_algorithm(L, Q_0, alpha, maxIter, tol, @subgrad_norm_inf);
+    [Q_ast, kappa] = riemman_algorithm(L, Q_0, alpha, maxIter, tol, @subgrad_norm_inf, @norm_infinity);
 
     % Store the local solution and objective value.
     Q_resultados{i} = Q_ast;
@@ -35,3 +36,4 @@ end
 [f_global, idx_mejor] = min(f_resultados);
 Q_global = Q_resultados{idx_mejor};
 
+time = toc;

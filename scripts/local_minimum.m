@@ -22,5 +22,5 @@ tol = 1e-8;
 alpha = 0.1;
 
 % Compare the initial condition number with the optimized result.
-kappa_0 = condition_number(L*Q_0);
-[Q_ast, kappa] = riemman_algorithm(L, Q_0, alpha, maxIter, tol, @subgrad_norm_inf);
+kappa_0 = condition_number(L*Q_0, @norm_infinity);
+[Q_ast, kappa] = riemman_algorithm(L, Q_0, alpha, maxIter, tol, @subgrad_norm_inf,@norm_infinity);

@@ -1,4 +1,4 @@
-function [Q_new, kappa_new]= riemman_algorithm(L,Q_0,alpha, maxIter, tol, subgrad_norm)
+function [Q_new, kappa_new]= riemman_algorithm(L,Q_0,alpha, maxIter, tol, subgrad_norm, norm_p)
 %RIEMMAN_ALGORITHM Run a Riemannian descent method on the orthogonal group.
 %   Starting from Q_0, the algorithm computes a Euclidean subgradient,
 %   projects it onto the tangent space, and updates Q by a matrix exponential.
@@ -26,7 +26,7 @@ for iter = 1:maxIter
     Q_new =  expm(-alpha * Omega) * Q_t ;
 
     % Evaluate the condition number after the candidate update.
-    kappa_new = condition_number(L * Q_new);
+    kappa_new = condition_number(L * Q_new, norm_p);
 
     if kappa_new < kappa_t
 
