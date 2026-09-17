@@ -29,8 +29,9 @@ nGrid1D = 100000;
 if nTheta == 1
     thetaCandidates = linspace(thetaLower, thetaUpper, nGrid1D).';
 else
+    U = lhsdesign(nRandom, nTheta);
     thetaCandidates = thetaLower + ...
-        (thetaUpper-thetaLower).*rand(nRandom, nTheta);
+        (thetaUpper-thetaLower).*U;
 end
 
 kappaCandidates = zeros(size(thetaCandidates, 1), 1);
@@ -102,5 +103,4 @@ algorithm_results.kappaCandidates = kappaCandidates;
 algorithm_results.thetaCandidates = thetaCandidates;
 algorithm_results.kappas_nRefine = kappas_nRefine;
 algorithm_results.Q_nRefine = Q_nRefine;
-
 end
