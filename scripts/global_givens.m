@@ -4,29 +4,31 @@
 %---------------------------------------------------------------------
 
 activate
-rng(1, 'twister')
+%rng(1, 'twister')
 tic
 
 N = 100;
-plotDir = fullfile('plots', 'K=3');
+plotDir = fullfile('plots', 'K=5');
 
 if ~exist(plotDir, 'dir')
     mkdir(plotDir);
 end
 
-for iP = 1:N
 
-    %% Problem setup
+solutions = cell(N,1);
+
+%% Problem setup
+P = tril(randn(5,5));
+
+while rcond(P) < eps
     P = tril(randn(3,3));
+end
 
-    while rcond(P) < eps
-        P = tril(randn(2,2));
-    end
-
+for iP = 1:N
     K = size(P,1);
     nTheta = K*(K-1)/2;
-    results = givens_algorithm(P, 100000, 100);
-
+    results = givens_algorithm(P, 10000, 100);
+    solutions{iP} = results;
     %% Diagnostics
 
     kappa_identity = condition_number(P, @norm_infinity);
@@ -72,9 +74,8 @@ for iP = 1:N
         ylabel(cb, 'log_{10}(\kappa_\infty(PQ))')
         grid on
         view(45, 25)
-        saveas(gcf, fullfile(plotDir, sprintf('givens_K3_P_%03d.png', iP)));
-
     end
+    saveas(gcf, fullfile(plotDir, sprintf('givens_K5_P_%03d.png', iP)));
     close(gcf)
 
 end
@@ -82,7 +83,5 @@ end
 elapsed_time = toc;
 fprintf('\nTotal elapsed time: %.3f seconds\n', elapsed_time)
 
+save(fullfile(plotDir, 'givens_K5_solutions.mat'), 'solutions', 'P')
 
-%{
-
-%}

@@ -1,0 +1,86 @@
+---
+title: "Algorithm to find Q matrices"
+author: ["Selection and Evaluation Team"]
+date: last-modified
+date-format: long
+lang: en
+engine: julia
+execute: 
+  daemon: 372000
+  cache: false
+  freeze: false
+  fig-width: 0.5
+  echo: false
+  warning: false
+  output: false
+format:
+  html: 
+    toc: true
+    code-fold: true
+    number-sections: true
+  pdf: 
+    number-sections: true
+    toc: false
+    fig-format: png
+    keep-tex: false 
+  docx:
+    number-sections: true
+    toc: false
+    fig-dpi: 200
+    df-print: paged
+    echo: false
+crossref: 
+  title-delim: "."
+nocite: |
+    @Conditio34:online 
+
+---
+
+
+# Objective
+
+
+The objective of this document is to develop ideas for algorithms related to optimization problems. The first algorithm considered is a projected gradient and subgradient method for optimization over the space of orthogonal matrices.
+
+
+
+# Optimization problem involving orthogonal matrices
+
+The admissible set is defined as
+
+$$
+\mathcal{O}(K)
+=
+\left\{
+Q\in\mathbb{R}^{K\times K}
+:
+Q'Q=QQ'=I
+\right\}.
+$$
+
+To formulate an optimization problem over the set of orthogonal matrices, a generic factorization of the reduced-form covariance matrix can then be written as
+
+$$
+\Sigma_e
+=
+B_0^{-1}B_0^{-1'}.
+=
+PQQ'P'
+$$
+
+where  $P$ is the Cholesky factor associated with the benchmark recursive identification, and $Q\in\mathcal{O}(K)$ is an orthogonal rotation matrix.
+
+Therefore, orthogonal rotations generate alternative structural decompositions that preserve the reduced-form variance-covariance matrix. This provides the basis for defining an optimization problem over $Q$ to select a structural decomposition according to a minimum condition number of $B_0^{-1}=(PQ)$ criterion.
+
+The optimization problem can be formulated as follows: 
+
+$$
+Q^{*}= \text{argmin}_{Q\in\mathcal{O}(K)} \kappa_{p}(PQ),
+$${#eq-optimizationProblem}
+
+where $p\in\{1,\infty\}$. The case $p=2$ is excluded because, under the Euclidean norm, $\kappa_2(PQ)=\kappa_2(P)$; hence, the objective function does not depend on $Q$.
+
+# Algorithm Givens Rotation Matrices...
+
+
+
