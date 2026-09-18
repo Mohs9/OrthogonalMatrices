@@ -234,6 +234,10 @@ than a guarantee of global optimality. The objective function is non-convex
 and non-smooth under the $\ell_1$ and $\ell_\infty$ induced norms, so different
 initial angle vectors may lead to different local solutions.
 
+::: {.callout-warning}
+With this algorithm, we are only exploring the space of special orthogonal matrices, $SO(K)$. However, matrices with determinant $-1$ are only reflections of $Q$, so it is not necessary to explore them separately.
+:::
+
 ## Special Cases $K = 2,3,4$
 
 For low-dimensional cases, particularly $K=2,3,4$, the numerical solutions
@@ -253,6 +257,12 @@ representations of the same underlying rotation pattern. These patterns are
 easier to identify when the Givens angles are compared modulo canonical angle
 increments, or when the resulting matrices are compared up to signed
 permutations.
+
+::: {layout-ncol=2}
+![Objective function $\kappa_\infty (PQ(\mathbf{\theta}))$, for  K =2](figs/givens_K2_P_010.png)
+
+![Objective function $\kappa_\infty (PQ(\mathbf{\theta}))$, for  K =3](figs/givens_K3_P_010.png)
+:::
 
 For higher-dimensional cases, especially when $K>4$, the same type of simple
 structure is not as clearly observed numerically. The number of Givens angles

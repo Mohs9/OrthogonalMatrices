@@ -7,8 +7,15 @@ activate
 %rng(1, 'twister')
 tic
 
-N = 100;
-plotDir = fullfile('plots', 'K=5');
+N = 2000;
+P = tril(randn(5,5));
+
+while rcond(P) < eps
+    P = tril(randn(3,3));
+end
+K = size(P,1);
+
+plotDir = fullfile('plots',  sprintf('K=%d', K));
 
 if ~exist(plotDir, 'dir')
     mkdir(plotDir);
@@ -16,16 +23,12 @@ end
 
 
 solutions = cell(N,1);
+parfor iP = 1:N
 
-%% Problem setup
-P = tril(randn(5,5));
 
-while rcond(P) < eps
-    P = tril(randn(3,3));
-end
+    %% Problem setup
 
-for iP = 1:N
-    K = size(P,1);
+
     nTheta = K*(K-1)/2;
     results = givens_algorithm(P, 10000, 100);
     solutions{iP} = results;
@@ -75,7 +78,7 @@ for iP = 1:N
         grid on
         view(45, 25)
     end
-    saveas(gcf, fullfile(plotDir, sprintf('givens_K5_P_%03d.png', iP)));
+    %saveas(gcf, fullfile(plotDir, sprintf('givens_K%d_P_%03d.png', K, iP)));
     close(gcf)
 
 end
@@ -83,5 +86,5 @@ end
 elapsed_time = toc;
 fprintf('\nTotal elapsed time: %.3f seconds\n', elapsed_time)
 
-save(fullfile(plotDir, 'givens_K5_solutions.mat'), 'solutions', 'P')
+save(fullfile(plotDir,  sprintf('givens_K%d_solutions.mat', K)), 'solutions', 'P')
 
