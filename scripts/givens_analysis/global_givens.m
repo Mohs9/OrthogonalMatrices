@@ -7,8 +7,8 @@ activate
 %rng(1, 'twister')
 tic
 
-N = 2000;
-P = tril(randn(5,5));
+N = 400;
+P = tril(randn(4,4));
 
 while rcond(P) < eps
     P = tril(randn(3,3));
