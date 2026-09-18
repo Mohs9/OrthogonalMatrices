@@ -1,5 +1,10 @@
-
-% Run a local Riemannian descent experiment from one random initial rotation.
+% ---------------------------------------------------------------------
+% Local Riemannian descent experiment for K=2.
+%
+% The script builds one random initial rotation Q_0, evaluates the initial
+% condition number, and then runs the Riemannian algorithm to obtain a local
+% minimum.
+% ---------------------------------------------------------------------
 
 % Activate the project paths.
 activate
@@ -10,7 +15,7 @@ K = 2;
 % Define a test matrix for the condition-number objective.
 L = [5, 0;1,6];
 
-% Generate a random 2-by-2 orthogonal rotation matrix.
+% Generate a random 2-by-2 orthogonal rotation matrix Q_0.
 theta = 2*pi*rand;
 
 Q_0 = [cos(theta), -sin(theta);

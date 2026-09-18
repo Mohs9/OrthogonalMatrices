@@ -1,4 +1,4 @@
-function algorithm_results = givens_algorithm(P,  nRandom, nRefine)
+function algorithm_results = givens_algorithm(P,  nRandom, nRefine, norma)
 
 K = size(P, 1);
 
@@ -16,7 +16,7 @@ thetaLower = -pi*ones(1, nTheta);
 thetaUpper =  pi*ones(1, nTheta);
 
 objective = @(theta) condition_number( ...
-    P*construct_Givens_matrices(theta, K), @norm_infinity);
+    P*construct_Givens_matrices(theta, K), norma);
 
 %% Coarse exploration of the Givens angle space
 

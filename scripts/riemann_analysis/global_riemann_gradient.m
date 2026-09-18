@@ -1,8 +1,13 @@
-activate;
+% ---------------------------------------------------------------------
+% Global multistart experiment for the Riemannian descent algorithm.
+%
+% The script draws many random orthogonal initial matrices Q_0, runs the
+% Riemannian algorithm from each starting point, and keeps the best local
+% solution found for the infinity-norm condition number objective.
+% ---------------------------------------------------------------------
 
+activate;
 tic;
-% Search for a good minimum by restarting the algorithm from many random
-% orthogonal initial matrices.
 
 N = 10000; % Number of orthogonal initial matrices to evaluate.
 m = 9;    % Number of rows.
@@ -20,6 +25,7 @@ alpha = 0.2;
 % Generate a random test matrix for the condition-number objective.
 L = randn(9,9);
 
+% Run the local Riemannian descent from many random initial conditions.
 parfor i = 1:N
     % Generate a random orthogonal initial matrix.
     Q_0 = orthogonal_matrix_generator(m, n);

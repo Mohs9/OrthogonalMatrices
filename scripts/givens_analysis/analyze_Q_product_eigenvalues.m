@@ -4,15 +4,22 @@
 % Optional variables before running:
 %   K           : dimension used to load plots/K=<K>/givens_K<K>_solutions.mat
 %   productType : 'direct' for Q_i*Q_j, or 'relative' for Q_i'*Q_j
+%
+% The relative product Q_i'*Q_j is useful because it measures the rotation
+% that maps Q_i into Q_j. Its eigenvalues lie on the unit circle when the
+% matrices are orthogonal.
 % ---------------------------------------------------------------------
 
 clearvars -except solutions K plotDir productType
 activate;
 
+% Use relative rotations by default. Set productType = 'direct' before
+% running the script to inspect Q_i*Q_j instead.
 if ~exist('productType', 'var')
     productType = 'relative';
 end
 
+% Load solutions from disk unless they already exist in the workspace.
 if ~exist('solutions', 'var')
     if ~exist('K', 'var')
         K = 3;
@@ -30,15 +37,18 @@ else
     end
 end
 
+% Create the output directory if needed.
 if ~exist(plotDir, 'dir')
     mkdir(plotDir);
 end
 
+% Remove empty cells, then determine the number of pairwise products.
 validSolutions = ~cellfun(@isempty, solutions);
 solutions = solutions(validSolutions);
 N = numel(solutions);
 nPairs = N*(N-1)/2;
 
+% Preallocate storage for product matrices and their spectral summaries.
 Q_products = zeros(K, K, nPairs);
 eigenvaluesProduct = complex(zeros(nPairs, K));
 eigenvalueAngles = zeros(nPairs, K);
@@ -53,6 +63,7 @@ maxModulusError = zeros(nPairs, 1);
 
 idxPair = 0;
 
+% Loop over all unordered pairs of solutions.
 for i = 1:N-1
     Q_i = solutions{i}.Q_best;
 
@@ -60,6 +71,7 @@ for i = 1:N-1
         Q_j = solutions{j}.Q_best;
         idxPair = idxPair + 1;
 
+        % Choose between direct products and relative rotations.
         switch productType
             case 'direct'
                 Q_product = Q_i*Q_j;
@@ -69,6 +81,7 @@ for i = 1:N-1
                 error('productType must be ''direct'' or ''relative''.');
         end
 
+        % Store eigenvalues and basic diagnostics for the product matrix.
         eigValues = eig(Q_product).';
 
         pair_i(idxPair) = i;
@@ -84,6 +97,7 @@ for i = 1:N-1
     end
 end
 
+% Print a short diagnostic summary.
 fprintf('\nQ product eigenvalue analysis\n')
 fprintf('K: %d\n', K)
 fprintf('Solutions analyzed: %d\n', N)
@@ -102,6 +116,7 @@ summaryTable = table( ...
     orthogonalityError, ...
     maxModulusError);
 
+% Save the full results. Q_products(:,:,k) corresponds to pair_i(k), pair_j(k).
 outputStem = sprintf('Q_product_eigenvalues_%s', productType);
 matFile = fullfile(plotDir, sprintf('%s.mat', outputStem));
 summaryFile = fullfile(plotDir, sprintf('%s_summary.csv', outputStem));
@@ -125,6 +140,7 @@ allModuli = eigenvalueModuli(:);
 
 thetaCircle = linspace(0, 2*pi, 1000);
 
+% Plot the distribution of eigenvalue angles.
 figure
 histogram(allAngles, 40)
 xlabel('eigenvalue angle, radians')
@@ -132,4 +148,3 @@ ylabel('count')
 title(sprintf('Eigenvalue angle distribution, %s products', productType))
 grid on
 saveas(gcf, fullfile(plotDir, sprintf('%s_angle_histogram.png', outputStem)))
-

@@ -1,36 +1,48 @@
-%---------------------------------------------------------------------
-% This script whe are going to explore all space of ortogonal matrices
-% using givens rotation matrices.
-%---------------------------------------------------------------------
+% ---------------------------------------------------------------------
+% Global Givens search for the infinity-norm condition number objective.
+%
+% The script fixes one matrix P and runs the Givens-angle optimizer from
+% many Latin-hypercube initial designs. Each run stores the best Q found,
+% so the resulting cell array can later be used to analyze repetitions,
+% signed-permutation equivalence, eigenvalues, and angle patterns.
+% ---------------------------------------------------------------------
 
 activate
 %rng(1, 'twister')
 tic
 
-N = 400;
-P = tril(randn(4,4));
+% Number of independent searches to run for the same matrix P.
+N = 2;
 
+% Generate one lower-triangular test matrix P. The objective is evaluated as
+% kappa_inf(P*Q).
+P = tril(randn(7,7));
+
+% Regenerate P if it is numerically singular.
 while rcond(P) < eps
     P = tril(randn(3,3));
 end
 K = size(P,1);
 
+% Store figures and the final solutions under a dimension-specific folder.
 plotDir = fullfile('plots',  sprintf('K=%d', K));
 
 if ~exist(plotDir, 'dir')
     mkdir(plotDir);
 end
 
-
+% Each cell stores the output struct returned by givens_algorithm.
 solutions = cell(N,1);
+
+% Run independent searches in parallel. Each iteration starts from a new
+% Latin-hypercube design inside givens_algorithm.
 parfor iP = 1:N
 
 
     %% Problem setup
 
-
     nTheta = K*(K-1)/2;
-    results = givens_algorithm(P, 10000, 100);
+    results = givens_algorithm(P, 10000, 100, @norm_infinity);
     solutions{iP} = results;
     %% Diagnostics
 
@@ -50,6 +62,8 @@ parfor iP = 1:N
     disp('Q_best =')
     disp(results.Q_best)
 
+    % For K=2, the objective can be shown as a one-dimensional curve. For
+    % K>2, only the first three Givens angles are visualized.
     if nTheta==1
         figure
         plot(results.thetaCandidates, results.kappaCandidates, 'LineWidth', 1.2)
@@ -78,6 +92,9 @@ parfor iP = 1:N
         grid on
         view(45, 25)
     end
+
+    % The plotting code is kept for inspection, but saving each figure can
+    % be expensive for large N.
     %saveas(gcf, fullfile(plotDir, sprintf('givens_K%d_P_%03d.png', K, iP)));
     close(gcf)
 
@@ -86,5 +103,5 @@ end
 elapsed_time = toc;
 fprintf('\nTotal elapsed time: %.3f seconds\n', elapsed_time)
 
+% Save the complete set of solutions and the matrix P used in the search.
 save(fullfile(plotDir,  sprintf('givens_K%d_solutions.mat', K)), 'solutions', 'P')
-

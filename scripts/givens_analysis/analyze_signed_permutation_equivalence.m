@@ -1,9 +1,15 @@
 % ---------------------------------------------------------------------
 % Check whether Q_best solutions are the same up to signed permutations.
+%
+% The infinity norm is invariant to column permutations and sign changes.
+% Therefore, Q and Q*S can represent equivalent optima when S is a signed
+% permutation matrix. This script measures that equivalence pair by pair.
 % ---------------------------------------------------------------------
 
 clearvars -except solutions
 activate;
+
+% Load precomputed Givens solutions unless they already exist in memory.
 plotDir = fullfile('plots', 'K=3');
 solutionsFile = fullfile(plotDir, 'givens_K3_solutions.mat');
 
@@ -14,6 +20,7 @@ end
 N = numel(solutions);
 distance_perm = zeros(N);
 
+% Compute min_S ||Q_j - Q_i*S||_F for all pairs of solutions.
 for i = 1:N
     Q_i = solutions{i}.Q_best;
 
@@ -25,9 +32,11 @@ for i = 1:N
     end
 end
 
+% Convert the pairwise distances into a binary equivalence matrix.
 tol = 1;
 same_perm = distance_perm <= tol;
 
+% Count equivalent off-diagonal pairs.
 nPairs = N*(N-1)/2;
 nSamePairs = nnz(triu(same_perm, 1));
 
@@ -36,6 +45,7 @@ fprintf('Equivalent pairs: %d of %d\n', nSamePairs, nPairs)
 fprintf('Share equivalent: %.2f%%\n', 100*nSamePairs/nPairs)
 fprintf('Max distance: %.3e\n', max(distance_perm(:)))
 
+% Heat map of distances after best signed-permutation alignment.
 figure
 imagesc(distance_perm)
 axis image
@@ -45,6 +55,7 @@ ylabel('solution id')
 title('Distance after best signed permutation')
 saveas(gcf, fullfile(plotDir, 'signed_permutation_distance_matrix.png'))
 
+% Binary heat map of equivalence under the selected tolerance.
 figure
 imagesc(same_perm)
 axis image
@@ -55,9 +66,11 @@ title(sprintf('Same up to signed permutation, tol %.1e', tol))
 saveas(gcf, fullfile(plotDir, 'signed_permutation_equivalence_matrix.png'))
 
 
+% Prepare one-dimensional diagnostics for distance and objective values.
 pairDistances = distance_perm(triu(true(N), 1));
 kappas = cellfun(@(s) s.kappa_best, solutions);
 
+% Distribution of pairwise signed-permutation distances.
 figure
 histogram(pairDistances, 30)
 xlabel('min_S ||Q_j - Q_i S||_F')
@@ -66,6 +79,7 @@ title('Pairwise distances after best signed permutation')
 grid on
 saveas(gcf, fullfile(plotDir, 'signed_permutation_distance_histogram.png'))
 
+% Distribution of optimized objective values.
 figure
 histogram(kappas, 30)
 xlabel('\kappa_\infty(PQ_{best})')
@@ -77,6 +91,7 @@ saveas(gcf, fullfile(plotDir, 'kappa_best_histogram.png'))
 
 %%%%------------------------- compare Givens angle -------
 
+% Collect theta_best values into an N-by-nTheta matrix.
 nTheta = numel(solutions{1}.theta_best);
 Theta = zeros(N, nTheta);
 
@@ -85,6 +100,9 @@ for i = 1:N
 end
 
 theta_tol = 1e-6;
+
+% Detect a common angular increment that approximately explains pairwise
+% differences between theta_best vectors.
 common_angle_result = detect_common_angle(Theta, theta_tol);
 
 fprintf('\nCommon angle detection\n')
@@ -100,6 +118,7 @@ save(fullfile(plotDir, 'common_angle_detection.mat'), ...
     'theta_tol', ...
     'common_angle_result')
 
+% Compare Givens angles modulo the detected common angle.
 givens_angle_results = compare_Givens_angles( ...
     Theta, theta_tol, common_angle_result.alpha);
 
@@ -113,6 +132,7 @@ save(fullfile(plotDir, 'givens_angle_comparison.mat'), ...
     'theta_tol', ...
     'givens_angle_results')
 
+% Heat map of raw wrapped angular distances.
 figure
 imagesc(givens_angle_results.distance)
 axis image
@@ -122,6 +142,7 @@ ylabel('solution id')
 title('Givens angle distance')
 saveas(gcf, fullfile(plotDir, 'givens_angle_distance_matrix.png'))
 
+% Heat map of angular equivalence under the detected common increment.
 figure
 imagesc(givens_angle_results.equivalentPi2)
 axis image
@@ -133,6 +154,7 @@ title(sprintf('Givens angles equivalent modulo %.4g*pi, tol %.1e', ...
 saveas(gcf, fullfile(plotDir, 'givens_angle_equivalence_pi2_matrix.png'))
 
 
+% Plot the maximum residual for all candidate common angles.
 figure
 plot(common_angle_result.alphaGrid/pi, ...
     common_angle_result.maxResidualGrid, 'LineWidth', 1.2)

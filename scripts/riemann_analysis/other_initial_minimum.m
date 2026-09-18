@@ -1,3 +1,9 @@
+% ---------------------------------------------------------------------
+% Multistart Riemannian descent using Givens-based initial points.
+%
+% Each restart first calls multistart_Q0 to obtain a strong initial
+% orthogonal matrix, and then refines it with the Riemannian algorithm.
+% ---------------------------------------------------------------------
 
 N = 1000;
 % Store the optimized matrices and their objective values.
@@ -13,6 +19,8 @@ alpha = 0.2;
 L = randn(9,9);
 
 tic;
+
+% Run the local method from many Givens-informed initial matrices.
 parfor i = 1:N
     % Generate a random orthogonal initial matrix.
     [Q_0, theta0, kappa0] =  multistart_Q0(L,10);
@@ -25,6 +33,7 @@ parfor i = 1:N
     f_resultados(i) = kappa;
 end
 tiempo_total = toc;
+
 % Select the best local result among all restarts.
 [f_global, idx_mejor] = min(f_resultados);
 Q_global = Q_resultados{idx_mejor};
