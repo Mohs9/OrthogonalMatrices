@@ -3,6 +3,7 @@ function kappa_p = condition_number(A, norm_p)
 %   The value is ||A||_p * ||A^{-1}||_p, using the project-specific
 %   p norm implementation.
 
-kappa_p = norm_p(A)*norm_p(inv(A));
+I = eye(size(A,1));
+kappa_p = norm_p(A)*norm_p(I/A);
 
 end
