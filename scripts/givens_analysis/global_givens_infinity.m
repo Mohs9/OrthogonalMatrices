@@ -12,11 +12,11 @@ activate
 tic
 
 % Number of independent searches to run for the same matrix P.
-N = 2;
+N = 1000;
 
 % Generate one lower-triangular test matrix P. The objective is evaluated as
 % kappa_inf(P*Q).
-P = tril(randn(7,7));
+P = tril(randn(6,6));
 
 % Regenerate P if it is numerically singular.
 while rcond(P) < eps

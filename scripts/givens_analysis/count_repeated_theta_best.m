@@ -7,7 +7,7 @@
 activate
 
 % Load the stored solutions for the selected dimension.
-K = 4;
+K = 3;
 plotDir = fullfile('plots', sprintf('K=%d', K));
 load(fullfile(plotDir, sprintf('givens_K%d_solutions.mat', K)), 'solutions')
 

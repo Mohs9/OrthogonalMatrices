@@ -12,7 +12,7 @@
 activate
 
 % Load the stored solutions for the selected dimension.
-K = 4;
+K = 5;
 plotDir = fullfile('plots', sprintf('K=%d', K));
 load(fullfile(plotDir, sprintf('givens_K%d_solutions.mat', K)), 'solutions')
 
@@ -20,7 +20,7 @@ N = numel(solutions);
 
 % Tolerance for deciding whether the signed-permutation distance is zero
 % numerically.
-tol = 1e-4;
+tol = 1e-5;
 
 % D_perm(i,j) stores the distance between Q_i and Q_j after the best signed
 % permutation alignment.
