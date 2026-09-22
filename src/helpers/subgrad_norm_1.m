@@ -1,6 +1,6 @@
 function [Gphi, phi, kappa] = subgrad_norm_1(L,Q)
 %SUBGRAD_NORM_1 Compute a Euclidean subgradient of log kappa for row sums.
-%   The routine evaluates g = ||LQ||_inf and h = ||Q'L^{-1}||_inf, then
+%   The routine evaluates g = ||LQ||_1 and h = ||Q'L^{-1}||_1, then
 %   returns a subgradient of phi = log(g) + log(h) with respect to Q.
 
 K = size(L,1);
@@ -26,7 +26,7 @@ end
 % Chain rule for A = LQ.
 Gg = L.'*EA;
 
-%% ||Q' L^{-1}||_inf
+%% ||Q' L^{-1}||_1
 B = Q.'*Linv;
 
 % Find the active rows of the inverse term.

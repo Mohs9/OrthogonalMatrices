@@ -5,7 +5,7 @@ activate
 % Load the stored solutions for the selected dimension.
 K = 5;
 plotDir = fullfile('plots', sprintf('K=%d', K));
-load(fullfile(plotDir, sprintf('haar_givens_K%d_solutions.mat', K)))
+load(fullfile(plotDir, sprintf('largeK_orthogonal_K%d_solutions.mat', K)))
 
 N = numel(solutions);
 kappas = cellfun(@(s) s.kappa_star, solutions);
