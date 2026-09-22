@@ -1,10 +1,10 @@
-function result = haar_givens_algorithm(Sigma_e, opts)
+function result = haar_givens_algorithm(Sigma_e, norm_func, opts)
 %HAAR_GIVENS_ALGORITHM Minimize cond_1(P*Q) over Q in SO(K).
 %
 %   result = haar_givens_algorithm(Sigma_e, opts) computes the lower
 %   Cholesky factor P such that Sigma_e = P*P' and searches for
 %
-%       Q_star = argmin_{Q in SO(K)} ||P*Q||_1 * ||Q'*P^{-1}||_1.
+%       Q_star = argmin_{Q in SO(K)} cond_p(P*Q).
 %
 %   The algorithm is deliberately simple:
 %     1. Haar exploration on SO(K).
@@ -13,7 +13,16 @@ function result = haar_givens_algorithm(Sigma_e, opts)
 %     4. Try random tangent perturbations and re-run Givens after
 %        successful perturbations.
 
-if nargin < 2
+if nargin < 2 || isempty(norm_func)
+    norm_func = @norm_1;
+end
+
+if nargin == 2 && isstruct(norm_func)
+    opts = norm_func;
+    norm_func = @norm_1;
+end
+
+if nargin < 3 || isempty(opts)
     opts = struct();
 end
 
@@ -32,7 +41,7 @@ if ~isempty(opts.SEED)
     rng(opts.SEED, 'twister');
 end
 
-obj = @(Q) condition_number(P*Q, @norm_1);
+obj = @(Q) condition_number(P*Q, norm_func);
 
 % ---------------------------------------------------------------------
 % 1. Global Haar exploration on SO(K).
@@ -66,7 +75,8 @@ local_info = repmat(struct( ...
 for iElite = 1:nElite
     Q0 = Q_haar(:,:,elite_indices(iElite));
     [Q_givens, f_givens, givens_info] = local_givens_search( ...
-        Q0, obj, opts.DELTA0, opts.TOL_STEP, opts.MAX_SWEEPS);
+        Q0, obj, opts.DELTA0, opts.TOL_STEP, opts.MAX_SWEEPS, ...
+        opts.TOL_IMPROVEMENT);
 
     [Q_best, f_best, tangent_info] = local_tangent_refinement( ...
         Q_givens, obj, opts);
@@ -86,9 +96,9 @@ B0_inv_star = P * Q_star;
 
 orthogonality_error = norm(Q_star.'*Q_star - eye(K), 'fro');
 det_Q_star = det(Q_star);
-cond1_direct = condition_number(B0_inv_star, @norm_1);
-cond1_error = abs(cond1_direct - kappa_star);
-kappa_P = condition_number(P, @norm_1);
+cond_direct = condition_number(B0_inv_star, norm_func);
+cond_error = abs(cond_direct - kappa_star);
+kappa_P = condition_number(P,norm_func);
 improvement = (kappa_P - kappa_star)/kappa_P;
 
 fprintf('\nHaar + Givens SO(K) optimization\n')
@@ -98,14 +108,14 @@ fprintf('N_ELITE: %d\n', nElite)
 fprintf('N_TANGENT: %d\n', opts.N_TANGENT)
 fprintf('TANGENT_RADIUS: %.3g\n', opts.TANGENT_RADIUS)
 fprintf('MAX_TANGENT_ROUNDS: %d\n', opts.MAX_TANGENT_ROUNDS)
-fprintf('best Haar kappa_1: %.15g\n', best_haar_value)
-fprintf('best local kappa_1: %.15g\n', kappa_star)
-fprintf('kappa_1(P): %.15g\n', kappa_P)
+fprintf('best Haar kappa_p: %.15g\n', best_haar_value)
+fprintf('best local kappa_p: %.15g\n', kappa_star)
+fprintf('kappa_p(P): %.15g\n', kappa_P)
 fprintf('improvement: %.6f\n', improvement)
 fprintf('orthogonality error ||Q''Q-I||_F: %.3e\n', orthogonality_error)
 fprintf('det(Q_star): %.15g\n', det_Q_star)
-fprintf('cond(P*Q_star,1): %.15g\n', cond1_direct)
-fprintf('|cond(P*Q_star,1)-kappa_star|: %.3e\n', cond1_error)
+fprintf('cond(P*Q_star,p): %.15g\n', cond_direct)
+fprintf('|cond(P*Q_star,p)-kappa_star|: %.3e\n', cond_error)
 
 result = struct();
 result.Q_star = Q_star;
@@ -122,8 +132,10 @@ result.improvement = improvement;
 result.orthogonality_error = orthogonality_error;
 result.det_Q_star = det_Q_star;
 result.det_Qstar = det_Q_star;
-result.cond1_direct = cond1_direct;
-result.cond1_error = cond1_error;
+result.cond_direct = cond_direct;
+result.cond_error = cond_error;
+result.cond1_direct = cond_direct;
+result.cond1_error = cond_error;
 result.haar_values = haar_values;
 result.elite_indices = elite_indices;
 result.opts = opts;

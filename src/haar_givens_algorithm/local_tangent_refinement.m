@@ -10,6 +10,10 @@ f_best = obj(Q_best);
 K = size(Q0, 1);
 epsilon = opts.TANGENT_RADIUS;
 
+if ~isfield(opts, 'TOL_IMPROVEMENT') || isempty(opts.TOL_IMPROVEMENT)
+    opts.TOL_IMPROVEMENT = 0;
+end
+
 rounds = 0;
 n_tangent_improvements = 0;
 n_givens_reruns = 0;
@@ -29,7 +33,7 @@ while rounds < opts.MAX_TANGENT_ROUNDS && epsilon >= opts.TOL_TANGENT
         Q_trial = Q_best * expm(epsilon*H);
         f_trial = obj(Q_trial);
 
-        if f_trial < best_trial_value
+        if f_trial < best_trial_value - opts.TOL_IMPROVEMENT
             best_trial_value = f_trial;
             best_trial_Q = Q_trial;
         end
@@ -37,19 +41,20 @@ while rounds < opts.MAX_TANGENT_ROUNDS && epsilon >= opts.TOL_TANGENT
         Q_trial = Q_best * expm(-epsilon*H);
         f_trial = obj(Q_trial);
 
-        if f_trial < best_trial_value
+        if f_trial < best_trial_value - opts.TOL_IMPROVEMENT
             best_trial_value = f_trial;
             best_trial_Q = Q_trial;
         end
     end
 
-    if best_trial_value < f_best
+    if best_trial_value < f_best - opts.TOL_IMPROVEMENT
         Q_best = best_trial_Q;
         f_best = best_trial_value;
         n_tangent_improvements = n_tangent_improvements + 1;
 
         [Q_best, f_best, givens_info] = local_givens_search( ...
-            Q_best, obj, opts.DELTA0, opts.TOL_STEP, opts.MAX_SWEEPS);
+            Q_best, obj, opts.DELTA0, opts.TOL_STEP, opts.MAX_SWEEPS, ...
+            opts.TOL_IMPROVEMENT);
 
         n_givens_reruns = n_givens_reruns + 1;
         givens_after_tangent(n_givens_reruns) = givens_info;
@@ -65,4 +70,3 @@ info.n_tangent_improvements = n_tangent_improvements;
 info.n_givens_reruns = n_givens_reruns;
 info.givens_after_tangent = givens_after_tangent(1:n_givens_reruns);
 end
-

@@ -17,6 +17,10 @@ if ~isfield(opts, 'TOL_STEP') || isempty(opts.TOL_STEP)
     opts.TOL_STEP = 1e-8;
 end
 
+if ~isfield(opts, 'TOL_IMPROVEMENT') || isempty(opts.TOL_IMPROVEMENT)
+    opts.TOL_IMPROVEMENT = 1e-12;
+end
+
 if ~isfield(opts, 'MAX_SWEEPS') || isempty(opts.MAX_SWEEPS)
     opts.MAX_SWEEPS = 2000;
 end
