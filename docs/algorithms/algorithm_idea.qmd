@@ -1,0 +1,570 @@
+---
+title: "Algorithm to find Q matrices"
+author: ["Selection and Evaluation Team"]
+date: last-modified
+date-format: long
+lang: en
+engine: julia
+execute: 
+  daemon: 372000
+  cache: false
+  freeze: false
+  fig-width: 0.5
+  echo: false
+  warning: false
+  output: false
+format:
+  html: 
+    toc: true
+    code-fold: true
+    number-sections: true
+  pdf: 
+    number-sections: true
+    toc: false
+    fig-format: png
+    keep-tex: false 
+  docx:
+    number-sections: true
+    toc: false
+    fig-dpi: 200
+    df-print: paged
+    echo: false
+crossref: 
+  title-delim: "."
+nocite: |
+    @Conditio34:online 
+
+---
+
+
+# Objective
+
+
+The objective of this document is to develop ideas for algorithms related to optimization problems. The first algorithm considered is a projected gradient and subgradient method for optimization over the space of orthogonal matrices.
+
+
+
+# Optimization problem involving orthogonal matrices
+
+The admissible set is defined as
+
+$$
+\mathcal{O}(K)
+=
+\left\{
+Q\in\mathbb{R}^{K\times K}
+:
+Q'Q=QQ'=I
+\right\}.
+$$
+
+To formulate an optimization problem over the set of orthogonal matrices, a generic factorization of the reduced-form covariance matrix can then be written as
+
+$$
+\Sigma_e
+=
+B_0^{-1}B_0^{-1'}.
+=
+PQQ'P'
+$$
+
+where  $P$ is the Cholesky factor associated with the benchmark recursive identification, and $Q\in\mathcal{O}(K)$ is an orthogonal rotation matrix.
+
+Therefore, orthogonal rotations generate alternative structural decompositions that preserve the reduced-form variance-covariance matrix. This provides the basis for defining an optimization problem over $Q$ to select a structural decomposition according to a minimum condition number of $B_0^{-1}=(PQ)$ criterion.
+
+The optimization problem can be formulated as follows: 
+
+$$
+Q^{*}= \text{argmin}_{Q\in\mathcal{O}(K)} \kappa_{p}(PQ),
+$${#eq-optimizationProblem}
+
+where $p\in\{1,\infty\}$. The case $p=2$ is excluded because, under the Euclidean norm, $\kappa_2(PQ)=\kappa_2(P)$; hence, the objective function does not depend on $Q$.
+
+# Algorithm Riemman Mainfolds...
+
+
+
+
+
+## Gradient Descent
+
+Gradient descent is based on the idea that, for a differentiable multivariable function $f(\mathbf{x})$, the function decreases most rapidly when we move from a point $\mathbf{a}$ in the direction opposite to its gradient, that is,
+
+$$
+-\nabla f(\mathbf{a}).
+$$
+
+Therefore, starting from a point $\mathbf{a}_n$, we update it as follows:
+
+$$
+\mathbf{a}_{n+1}
+=
+\mathbf{a}_n
+-
+\eta \nabla f(\mathbf{a}_n),
+$$
+
+where $\eta > 0$ is a sufficiently small step size, also called the learning rate. Subtracting $\eta \nabla f(\mathbf{a}_n)$ means that we are moving against the direction of steepest increase, and therefore toward a local minimum.
+
+Using this idea, we begin with an initial guess $\mathbf{x}_0$ and construct a sequence of points
+
+$$
+\mathbf{x}_0, \mathbf{x}_1, \mathbf{x}_2, \ldots
+$$
+
+according to the rule
+
+$$
+\mathbf{x}_{n+1}
+=
+\mathbf{x}_n
+-
+\eta_n \nabla f(\mathbf{x}_n),
+\qquad n \geq 0.
+$$ {#eq-updatex}
+
+If the learning rates $\eta_n$ are chosen properly, the function values decrease at each iteration:
+
+$$
+f(\mathbf{x}_0)
+\geq
+f(\mathbf{x}_1)
+\geq
+f(\mathbf{x}_2)
+\geq
+\cdots.
+$$
+
+Thus, the method generates a sequence of points that moves progressively closer to a local minimum. The step size does not have to remain constant; it may change from one iteration to the next.
+
+## Euclidean Gradient
+
+For this particular problem, it is convenient to apply a logarithmic transformation to the objective function $f(Q)$ as follows:
+$$
+\phi(Q)
+=
+\log \|PQ\|_p
++
+\log \|Q'P^{-1}\|_p,
+$$
+
+since $(PQ)^{-1}=Q'P^{-1}$ and the logarithm preserves the minimizer.
+
+By the chain rule, a Euclidean gradient or subgradient is
+
+$$
+\nabla \phi(Q) = 
+  \frac{\nabla g(Q)}{g(Q)}
+  +
+  \frac{\nabla h(Q)}{h(Q)},
+$$
+
+where $g(Q) = \|PQ\|_p$ and $h(Q) = \|Q'P^{-1}\|_p$.
+
+The procedure for computing a gradient or subgradient of $g$ is described below; the case of $h$ is analogous. First, $\nabla g$ can be computed from the definition of the induced norm. For the $\ell_\infty$ norm, it is defined as
+
+$$
+\|PQ\|_\infty = \max_i \left\{\sum_{k=1}^K \left|\sum_{j=1}^K p_{i,j}q_{j,k}\right| \right\}, 
+$$
+where $p_{i,j}$ and $q_{j,k}$ are the entries of the matrices $P$ and $Q$, respectively.
+
+Then, taking a row $i^\star$ that attains the maximum row sum, the derivative of this row with respect to $q_{m,n}$ is
+
+$$
+\frac{\partial}{\partial q_{m,n}}
+\left(
+\sum_{k=1}^K
+\left|
+\sum_{j=1}^K p_{i^\star,j}q_{j,k}
+\right|
+\right)
+=
+p_{i^\star,m}\operatorname{sign}\left((PQ)_{i^\star,n}\right).
+$$
+
+In compact matrix form,
+
+$$
+\nabla g(Q) = P'\mathbf{e}_{i^\star}s',
+$$
+
+where $\mathbf{e}_{i^\star}$ is column vector with zeros in al entries except in active row $i^{\star}$, $s$ is a column vector such that $s_j = \operatorname{sign}\left((PQ)_{i^\star,j}\right)$.
+
+If more than one row attains the maximum, or if some entries of the active row are zero, the same expression should be interpreted as a subgradient, using admissible signs and **convex combinations** over the active rows.
+
+## Continuous idea
+
+The idea is to first write the algorithm in continuous time and then transform it into a discrete form that can be computed iteratively.
+
+Here, we do not differentiate a fixed matrix $Q$; instead, we consider a smooth curve $Q(t)\in\mathcal{O}(K)$ whose entries depend on the parameter $t$.
+
+First, parametrize the matrix as $Q=Q(t)$ so that its orthogonality property can be exploited as follows:
+
+$$
+\dfrac{\mathrm{d}}{\mathrm{d}t}(Q(t)Q(t)') =
+\dot Q(t)Q(t)' + Q(t)\dot Q(t)' =
+\dfrac{\mathrm{d}}{\mathrm{d}t}I =0.
+$$ 
+
+Let $\dot Q(t)=\dfrac{\mathrm{d}}{\mathrm{d}t}Q(t)$. Then, from the previous equation, it follows that
+ 
+$$
+Q\dot{Q}'= -\dot{Q}Q'.
+$$
+
+Now define
+
+$$
+\Omega := \dot{Q}Q'.
+$$
+
+Then $\Omega$ is a skew-symmetric matrix, $\Omega=-\Omega'$. Thus, the tangent space at $Q$, consisting of the matrices $\mathbfsf{T}$, is $\mathbffrak{T}_{Q} = \{\mathbfsf{T} = \Omega Q : \Omega = -\Omega'\}$.
+
+Moreover, this gives the differential equation
+
+$$
+\dot{Q} = \Omega Q,
+$$
+
+whose solution is
+
+$$
+Q(t) = \exp(t\Omega) Q_0.
+$$
+with $\Omega$ **fixed** or constant.
+
+
+It remains to determine the matrix $\Omega$. Intuitively, to move in the direction of steepest descent, the continuous-time dynamics should satisfy
+
+$$
+\dot{Q} = -\nabla_{\text{R}}\phi(Q).
+$$
+
+In general, the Euclidean gradient $\nabla \phi(Q)$ is not necessarily tangent to the orthogonal group. For this reason, the Riemannian gradient must be used, keeping only the tangent component of the Euclidean gradient.
+
+To identify the tangent component of $\mathbfcal{G}= \nabla \phi(Q)$, use the decomposition $A = \operatorname{sym}(A)+\operatorname{skew}(A)$^[$\operatorname{sym}(A) = \frac{A+A'}{2}$ and $\operatorname{skew}(A) = \frac{A-A'}{2}$]. Since $Q$ is orthogonal, we can write $\mathbfcal{G}(Q) = (\mathbfcal{G} Q')Q$ and obtain
+
+$$
+\mathbfcal{G}= \operatorname{sym}(\mathbfcal{G} Q')Q+ \operatorname{skew}(\mathbfcal{G} Q')Q.
+$$
+
+Therefore,
+
+$$
+\nabla_{\text{R}}\phi(Q)=\operatorname{skew}(\mathbfcal{G} Q')Q.
+$$
+
+If we define $\Omega=\operatorname{skew}(\mathbfcal{G} Q')$, the descent flow is
+
+$$
+\dot Q = -\Omega Q,
+$$
+
+and, over one step with $\Omega$ fixed. Passing from the continuous formulation to a discrete iterative update gives
+
+$$
+Q_\text{new} = \exp(-\alpha \operatorname{skew}(\mathbfcal{G} Q'_{\text{old}})) Q_{\text{old}}.
+$$
+
+Here, $\mathbfcal{G}=\nabla\phi(Q_{\text{old}})$ is the Euclidean gradient evaluated at the previous iterate $Q_{\text{old}}$.
+
+
+
+
+# Algorithm Givens Rotation Matrices...
+
+
+## Rotation Matrices
+
+
+The special orthogonal group is defined as
+
+$$
+SO(K)
+=
+\left\{
+Q\in\mathbb{R}^{K\times K}
+:
+Q'Q=I,\;
+\det(Q)=1
+\right\}.
+$$
+
+Using Givens rotations, an element of $SO(K)$ can be parameterized as
+
+$$
+Q(\boldsymbol{\theta})
+=
+\prod_{i<j} G_{ij}(\theta_{ij}),
+\qquad
+Q(\boldsymbol{\theta})\in SO(K),
+$$
+
+where
+
+$$
+\boldsymbol{\theta}
+=
+\{\theta_{ij}\}_{1\le i<j\le K}.
+$$
+
+The total number of rotation angles is
+
+$$
+\frac{K(K-1)}{2}.
+$$
+
+Equivalently,
+
+$$
+SO(K)
+=
+\left\{
+\prod_{i<j} G_{ij}(\theta_{ij})
+:
+\theta_{ij}\in\mathbb{R}
+\right\},
+$$
+
+for a fixed ordering of the Givens rotations.
+
+
+## Algorithm with Rotation Matrices
+
+The purpose of using Givens rotation matrices is to replace the search over
+the full space of orthogonal matrices with a search over a finite vector of
+rotation angles. Instead of optimizing directly over the entries of $Q$, the
+algorithm optimizes over
+
+$$
+\boldsymbol{\theta}
+\in
+\mathbb{R}^{K(K-1)/2},
+$$
+
+and then constructs the orthogonal matrix as $Q(\boldsymbol{\theta})$. This
+parameterization reduces the dimensionality of the numerical search and
+guarantees that every candidate matrix generated by the algorithm is
+orthogonal.
+
+The numerical procedure used to approximate the solution of
+@eq-optimizationProblem is as follows:
+
+1. Define the number of Givens angles:
+
+   $$
+   n_\theta = \frac{K(K-1)}{2}.
+   $$
+
+2. Generate an initial collection of $N$ candidate angle vectors,
+
+   $$
+   \Theta
+   =
+   \left\{
+   \boldsymbol{\theta}^{(1)},\ldots,
+   \boldsymbol{\theta}^{(N)}
+   \right\},
+   \qquad
+   \boldsymbol{\theta}^{(s)}\in[-\pi,\pi]^{n_\theta}.
+   $$
+
+   For $K=2$, this can be done with a one-dimensional grid over
+   $[-\pi,\pi]$. For higher dimensions, a full Cartesian grid becomes
+   computationally infeasible, because the number of grid points grows
+   exponentially with $n_\theta$. Therefore, the algorithm uses a
+   space-filling design based on *Latin Hypercube Sampling* to explore the
+   angle space more evenly than purely independent random draws.
+
+3. For each candidate vector $\boldsymbol{\theta}^{(s)}$, construct the
+   corresponding Givens rotation matrix:
+
+   $$
+   Q^{(s)} = Q(\boldsymbol{\theta}^{(s)}).
+   $$
+
+4. Evaluate the objective function for each candidate:
+
+   $$
+   \kappa_p\left(PQ(\boldsymbol{\theta}^{(s)})\right).
+   $$
+
+   This produces $N$ candidate condition numbers.
+
+5. Sort the candidates according to their objective values and select the
+   best $M$ angle vectors, that is, the vectors associated with the smallest
+   values of
+
+   $$
+   \kappa_p\left(PQ(\boldsymbol{\theta})\right).
+   $$
+
+6. Starting from each of these $M$ promising angle vectors, perform a local
+   refinement step. In the current implementation, this refinement is carried
+   out with a constrained nonlinear optimizer over the angle vector
+   $\boldsymbol{\theta}$, with bounds
+
+   $$
+   -\pi \leq \theta_\ell \leq \pi,
+   \qquad
+   \ell=1,\ldots,n_\theta.
+   $$
+
+7. Compare the refined candidates with the best values obtained during the
+   initial exploration. The final numerical solution is the matrix
+
+   $$
+   Q^* = Q(\boldsymbol{\theta}^*)
+   $$
+
+   associated with the smallest condition number found across both the
+   initial exploration and the local refinement steps.
+
+This procedure should be interpreted as a multistart numerical search rather
+than a guarantee of global optimality. The objective function is non-convex
+and non-smooth under the $\ell_1$ and $\ell_\infty$ induced norms, so different
+initial angle vectors may lead to different local solutions.
+
+::: {.callout-warning}
+With this algorithm, we are only exploring the space of special orthogonal matrices, $SO(K)$. However, matrices with determinant $-1$ are only reflections of $Q$, so it is not necessary to explore them separately.
+:::
+
+
+## Special Cases $K = 2,3,4$
+
+For low-dimensional cases, particularly $K=2,3,4$, the numerical solutions
+often exhibit additional structure. In these cases, the matrices $Q^*$ found
+by the algorithm can frequently be grouped into families of equivalent or
+nearly equivalent rotations. Within each family, different solutions appear to
+be related by canonical angular shifts, such as
+
+$$
+\pm \pi,\qquad
+\pm\frac{\pi}{2},\qquad
+\pm\frac{2\pi}{3}.
+$$
+
+This suggests that, in small dimensions, the optimizer may recover several
+representations of the same underlying rotation pattern. These patterns are
+easier to identify when the Givens angles are compared modulo canonical angle
+increments, or when the resulting matrices are compared up to signed
+permutations.
+
+::: {layout-ncol=2}
+![Objective function $\kappa_\infty (PQ(\mathbf{\theta}))$, for  K =2](figs/givens_K2_P_010.png)
+
+![Objective function $\kappa_\infty (PQ(\mathbf{\theta}))$, for  K =3](figs/givens_K3_P_010.png)
+:::
+
+For higher-dimensional cases, especially when $K>4$, the same type of simple
+structure is not as clearly observed numerically. The number of Givens angles
+increases rapidly with $K$, and the optimization landscape becomes more
+complex. As a result, different local solutions for the same matrix $P$ may no
+longer be easily described by a small set of canonical angular rotations.
+
+It is also important to account for symmetries induced by the objective
+function. Under the induced infinity norm, column permutations and sign changes
+of $Q^*$ preserve the row-wise absolute sums of $PQ^*$. Therefore, if $Q^*$ is
+a solution, then
+
+$$
+Q^*S
+$$
+
+is also an equivalent solution for any signed permutation matrix $S$. A signed
+permutation matrix combines a permutation of the columns with independent sign
+changes. Since there are $K!$ possible permutations and $2^K$ possible sign
+patterns, each solution generates an equivalence class containing
+
+$$
+2^K K!
+$$
+
+matrices with the same objective value. This symmetry should be considered
+when counting or comparing numerical solutions, since apparently distinct
+matrices may represent the same solution up to signed permutation.
+
+
+# Large-K Haar-Riemannian-Givens Algorithm
+
+The algorithm first fixes a reproducible covariance matrix $\Sigma_e$, computes
+its Cholesky factor $P$, sets the optimization options, and then runs several
+independent searches with different random seeds. These independent runs are
+used because each one starts from a different random exploration of
+$\mathcal{O}(K)$, which helps the algorithm search different regions of a
+non-convex objective. After all runs are completed, it compares the resulting
+values of $\kappa_p(PQ)$ and selects the best rotation found across the
+experiment.
+
+Each batch of runs follows a three-stage search strategy.
+
+1. It explores $\mathcal{O}(K)$ by evaluating the identity matrix and many
+random orthogonal matrices drawn from the Haar distribution.
+
+2. It keeps the best elite candidates from the Haar exploration and uses them
+as starting points for a smooth Riemannian descent step on the orthogonal
+manifold. This stage exploits the local geometry of $\mathcal{O}(K)$: each
+update moves along directions that preserve orthogonality, so the refinement
+can reduce the objective without leaving the feasible set.
+
+3. It polishes each refined solution using exact Givens rotations. This final
+stage updates pairs of columns through plane rotations and accepts the changes
+that reduce the condition number under the chosen norm. The Givens sweep is a
+local coordinate-wise improvement step, so it is useful for correcting small
+suboptimalities that may remain after the Riemannian refinement. Mathematically,
+for each pair of columns $(i,j)$ the algorithm considers a local update of the
+form
+
+$$
+Q_{\text{new}} = Q G_{ij}(\delta),
+$$
+
+where $G_{ij}(\delta)$ is the identity matrix except for a two-dimensional
+rotation in the $(i,j)$ plane. The angle is chosen by solving the one-dimensional
+problem
+
+$$
+\delta_{ij}^*
+=
+\arg\min_{\theta}
+\kappa_p\left(PQG_{ij}(\delta)\right),
+$$
+
+and the update is accepted whenever
+
+$$
+\kappa_p\left(PQG_{ij}(\delta_{ij}^*)\right)
+<
+\kappa_p(PQ).
+$$
+
+Thus, the Givens polishing step can be interpreted as applying small structured
+perturbations across the coordinate planes of the current orthogonal matrix.
+
+The output of the optimizer includes the selected matrix $Q^*$, the rotated
+structural factor $PQ^*$, the best condition number $\kappa_p(PQ^*)$, and
+diagnostics such as the improvement relative to the Cholesky benchmark,
+$\|Q^{*'}Q^*-I\|_F$, $\det(Q^*)$, and the direct objective error. The global
+script stores these outputs for all seeds, chooses the run with the smallest
+condition number, and saves the complete experiment for later analysis.
+
+
+# Appendix {#sec-appendix .appendix}
+
+## Intuition of norms
+
+To understand the induced $p$-norm, we must first remember that changing the value of $p$ completely changes what we regard as a “unit sphere”—the set of vectors whose length equals 1:
+
+* **If $p=2$ (Euclidean norm):** The unit sphere is a perfectly **round ball**. We measure distance in a straight line.
+* **If $p=1$ (taxicab norm):** The unit sphere becomes a **diamond or rhombus**. Distances are measured by turning corners, as on city streets.
+* **If $p=\infty$ (maximum norm):** The unit sphere is a **square or cube**. Only the largest coordinate matters.
+
+### The Induced $p$-Norm:
+
+1. Take the “sphere” corresponding to that particular $p$ (a diamond for $p=1$, a circumference for $p=2$, or a square for $p=\infty$).
+2. Let the matrix $A$ transform and deform that shape.
+3. The induced $p$-norm is the farthest point of the resulting transformed figure, measured according to the rules of that same $p$-norm.
+
+
+
+![“Unit sphere” using different $p$-norms](figs/norms.png){#fig-norms width="50%"}
