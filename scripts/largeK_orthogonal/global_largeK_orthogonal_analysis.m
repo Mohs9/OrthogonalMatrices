@@ -11,7 +11,7 @@ tic
 
 % Fixed reproducible covariance matrix.
 rng(25, 'twister')
-K = 25;
+K = 20;
 M = randn(K, K);
 Sigma_e = M*M' + 0.25*eye(K);
 P = chol(Sigma_e, 'lower');
@@ -61,13 +61,18 @@ parfor iRun = 1:N
     objective_errors(iRun) = result.objective_error;
     orthogonality_errors(iRun) = result.orthogonality_error;
 
-    fprintf('\nLarge-K run %d/%d completed.\n', iRun, N)
-    fprintf('seed: %d\n', optsRun.SEED)
-    fprintf('best kappa_p(P*Q): %.12g\n', result.kappa_star)
+    fprintf('\nLarge-K Haar + Riemannian + Givens optimization\n')
+    fprintf('K: %d\n', K)
+
+    fprintf('best Haar log(kappa_p): %.15g\n', result.best_haar_log_value)
+    fprintf('best local kappa_p: %.15g\n', result.kappa_star)
+    fprintf('kappa_p(P): %.15g\n', result.kappa_cholesky)
     fprintf('improvement: %.6f\n', result.improvement)
-    fprintf('objective error: %.3e\n', result.objective_error)
-    fprintf('orthogonality error ||Q''Q-I||_F: %.3e\n', ...
-        result.orthogonality_error)
+    fprintf('orthogonality error ||Q''Q-I||_F: %.3e\n', result.orthogonality_error)
+    fprintf('det(Q_star): %.15g\n', result.det_Qstar)
+    fprintf('cond(P*Q_star,p): %.15g\n', result.kappa_direct)
+    fprintf('|cond(P*Q_star,p)-kappa_star|: %.3e\n', result.objective_error)
+
 end
 
 % Select the best solution among all independent runs.

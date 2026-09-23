@@ -94,18 +94,6 @@ objective_error = abs(kappa_direct - kappa_star);
 [kappa_P, ~] = objective_exact(eye(K), P, R, norm_func);
 improvement = (kappa_P - kappa_star)/kappa_P;
 
-fprintf('\nLarge-K Haar + Riemannian + Givens optimization\n')
-fprintf('K: %d\n', K)
-fprintf('N_HAAR: %d\n', opts.N_HAAR)
-fprintf('N_ELITE: %d\n', nElite)
-fprintf('best Haar log(kappa_p): %.15g\n', best_haar_log_value)
-fprintf('best local kappa_p: %.15g\n', kappa_star)
-fprintf('kappa_p(P): %.15g\n', kappa_P)
-fprintf('improvement: %.6f\n', improvement)
-fprintf('orthogonality error ||Q''Q-I||_F: %.3e\n', orthogonality_error)
-fprintf('det(Q_star): %.15g\n', det_Qstar)
-fprintf('cond(P*Q_star,p): %.15g\n', kappa_direct)
-fprintf('|cond(P*Q_star,p)-kappa_star|: %.3e\n', objective_error)
 
 result = struct();
 result.Q_star = Q_star;
