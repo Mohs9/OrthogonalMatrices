@@ -10,8 +10,8 @@ activate
 tic
 
 % Fixed reproducible covariance matrix.
-rng(25, 'twister')
-K = 20;
+rng(20, 'twister')
+K = 30;
 M = randn(K, K);
 Sigma_e = M*M' + 0.25*eye(K);
 P = chol(Sigma_e, 'lower');
@@ -39,8 +39,8 @@ opts = struct();
 opts.SEED = 1;
 opts.N_HAAR = 10000;
 opts.N_ELITE = 30;
-opts.RIEMANN_MAX_ITERS = 1000;
-opts.GIVENS_MAX_SWEEPS = 10;
+opts.RIEMANN_MAX_ITERS = 100;
+opts.GIVENS_MAX_SWEEPS = 20;
 opts.TOL_IMPROVEMENT = 1e-12;
 seeds = opts.SEED + (0:N-1).';
 
@@ -63,7 +63,7 @@ parfor iRun = 1:N
 
     fprintf('\nLarge-K Haar + Riemannian + Givens optimization\n')
     fprintf('K: %d\n', K)
-
+    fprintf('Seed: %d\n', optsRun.SEED)
     fprintf('best Haar log(kappa_p): %.15g\n', result.best_haar_log_value)
     fprintf('best local kappa_p: %.15g\n', result.kappa_star)
     fprintf('kappa_p(P): %.15g\n', result.kappa_cholesky)

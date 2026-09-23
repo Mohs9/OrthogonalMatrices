@@ -3,7 +3,7 @@
 activate
 
 % Load the stored solutions for the selected dimension.
-K = 5;
+K = 25;
 plotDir = fullfile('plots', sprintf('K=%d', K));
 load(fullfile(plotDir, sprintf('largeK_orthogonal_K%d_solutions.mat', K)))
 

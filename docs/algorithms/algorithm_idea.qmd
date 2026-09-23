@@ -549,6 +549,25 @@ script stores these outputs for all seeds, chooses the run with the smallest
 condition number, and saves the complete experiment for later analysis.
 
 
+
+## Experiment
+
+For $K=25$, the experiment was run with $500$ independent random seeds,
+starting from seed $1$ and using consecutive seeds across runs. In each run,
+the algorithm evaluated $10000$ Haar draws, kept the best $100$ elite
+candidates, allowed up to $100$ Riemannian refinement iterations and $10$
+Givens polishing sweeps.
+
+- The best value found was $\kappa\star=43.4725459286549$, while the worst
+value among the stored solutions was $47.8204363834455$, giving a range of about $4.348$.
+- The average value was $46.2702147729366$, with a standard deviation of $0.7205$,
+indicating that most runs reached broadly similar but not identical objective values.
+- Using a tolerance of $10^{-4}$, the 500 solutions were separated into 494
+distinct $\kappa\star$ groups, so grouping only by the numerical objective
+value does not reveal a small number of repeated solutions.
+
+
+
 # Appendix {#sec-appendix .appendix}
 
 ## Intuition of norms
