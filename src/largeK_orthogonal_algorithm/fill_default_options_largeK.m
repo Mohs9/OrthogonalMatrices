@@ -1,18 +1,26 @@
 function opts = fill_default_options_largeK(opts)
-%FILL_DEFAULT_OPTIONS_LARGEK Add defaults without overwriting user choices.
+%FILL_DEFAULT_OPTIONS_LARGEK Fill defaults without overwriting user choices.
+%
+%   Centralizes the large-K algorithm parameters. Each block keeps the
+%   incoming value when present and assigns the default only when the field
+%   is missing or empty.
 
+% Size of the global exploration with Haar orthogonal matrices.
 if ~isfield(opts, 'N_HAAR') || isempty(opts.N_HAAR)
     opts.N_HAAR = 5000;
 end
 
+% Number of candidates that continue to local refinement.
 if ~isfield(opts, 'N_ELITE') || isempty(opts.N_ELITE)
     opts.N_ELITE = 10;
 end
 
+% Optional seed for making the random phase reproducible.
 if ~isfield(opts, 'SEED')
     opts.SEED = [];
 end
 
+% Riemannian refinement parameters.
 if ~isfield(opts, 'RIEMANN_MAX_ITERS') || isempty(opts.RIEMANN_MAX_ITERS)
     opts.RIEMANN_MAX_ITERS = 100;
 end
@@ -37,6 +45,7 @@ if ~isfield(opts, 'MAX_LINESEARCH') || isempty(opts.MAX_LINESEARCH)
     opts.MAX_LINESEARCH = 20;
 end
 
+% Exact Givens polishing parameters.
 if ~isfield(opts, 'GIVENS_MAX_SWEEPS') || isempty(opts.GIVENS_MAX_SWEEPS)
     opts.GIVENS_MAX_SWEEPS = 2;
 end

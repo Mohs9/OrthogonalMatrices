@@ -2,15 +2,24 @@ function result = optimize_Qstar_largeK(Sigma_e, norm_func, opts)
 %OPTIMIZE_QSTAR_LARGEK Haar + Riemannian + Givens search for large K.
 %
 %   This is the large-K analogue of haar_givens_algorithm:
-%     1. Haar exploration on O(K).
-%     2. Keep the best elites.
-%     3. Refine each elite with a smooth Riemannian descent.
-%     4. Polish with exact 1-norm Givens rotations.
+%     1. Explore O(K) with random Haar samples.
+%     2. Keep the best candidates (elites).
+%     3. Refine each elite with smooth Riemannian descent.
+%     4. Polish with Givens rotations using the exact objective.
+%
+%   Input:
+%     Sigma_e   symmetric positive definite matrix.
+%     norm_func norm used to measure the condition number (@norm_1 default).
+%     opts      optional structure with hyperparameters.
+%
+%   Output:
+%     result    structure with Q_star, kappa_star, diagnostics, and traces.
 
 if nargin < 2 || isempty(norm_func)
     norm_func = @norm_1;
 end
 
+% Allow optimize_Qstar_largeK(Sigma_e, opts).
 if nargin == 2 && isstruct(norm_func)
     opts = struct();
     opts = norm_func;
@@ -23,6 +32,7 @@ end
 
 opts = fill_default_options_largeK(opts);
 
+% Set the seed only if the user specifies one.
 if ~isempty(opts.SEED)
     rng(opts.SEED, 'twister');
 end
@@ -31,9 +41,11 @@ if size(Sigma_e, 1) ~= size(Sigma_e, 2)
     error('Sigma_e must be square.');
 end
 
+% Symmetrize to remove numerical noise before factorization.
 Sigma_e = (Sigma_e + Sigma_e')/2;
 K = size(Sigma_e, 1);
 P = chol(Sigma_e, 'lower');
+% R = P^{-1}; precompute it to evaluate ||Q'*P^{-1}|| without inv().
 R = P \ eye(K);
 
 % ---------------------------------------------------------------------
@@ -43,9 +55,11 @@ nCandidates = opts.N_HAAR + 1;
 haar_values = zeros(nCandidates, 1);
 Q_haar = zeros(K, K, nCandidates);
 
+% Include the identity to always compare against the base Cholesky factor.
 Q_haar(:,:,1) = eye(K);
 [~, haar_values(1)] = objective_exact(Q_haar(:,:,1), P, R, norm_func);
 
+% Sample random orthogonal candidates and evaluate the exact condition.
 for i = 2:nCandidates
     Q = orthogonal_matrix_generator(K);
     Q_haar(:,:,i) = Q;
@@ -70,7 +84,9 @@ local_info = repmat(struct('riemannian', [], 'givens', []), nElite, 1);
 for iElite = 1:nElite
     Q0 = Q_haar(:,:,elite_indices(iElite));
 
+    % First move on the orthogonal manifold with the logarithmic objective.
     [Q_riem, ~, riem_info] = riemannian_refine(Q0, P, R, norm_func, opts);
+    % Then validate and improve with the exact objective, without gradients.
     [Q_best, kappa_best, givens_info] = exact_givens_polish( ...
         Q_riem, P, R, norm_func, opts);
 
@@ -87,6 +103,7 @@ end
 Q_star = Q_local(:,:,idx_best_local);
 B0_inv_star = P * Q_star;
 
+% Numerical diagnostics for checking orthogonality and consistency.
 orthogonality_error = norm(Q_star'*Q_star - eye(K), 'fro');
 det_Qstar = det(Q_star);
 [kappa_direct, ~] = objective_exact(Q_star, P, R, norm_func);
@@ -95,6 +112,7 @@ objective_error = abs(kappa_direct - kappa_star);
 improvement = (kappa_P - kappa_star)/kappa_P;
 
 
+% Package results and traces for later analysis.
 result = struct();
 result.Q_star = Q_star;
 result.kappa_star = kappa_star;
