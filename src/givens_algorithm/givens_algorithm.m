@@ -1,4 +1,32 @@
-function algorithm_results = givens_algorithm(P,  nRandom, nRefine, norma)
+function algorithm_results = givens_algorithm(P,  nRandom, nRefine, norma, opts)
+%GIVENS_ALGORITHM Search for an orthogonal Givens factor that lowers kappa.
+%
+% Optional opts fields:
+%   tracePaths      true saves theta/kappa values visited by local refiners.
+%   initialization  'default' keeps the original K=2 grid behavior;
+%                   'random' uses random starts for K=2.
+%   nGrid1D         number of K=2 grid points for default initialization.
+%   thetaCandidates user-supplied candidate starts, one row per start.
+
+if nargin < 5
+    opts = struct();
+end
+
+if ~isfield(opts, 'tracePaths')
+    opts.tracePaths = false;
+end
+
+if ~isfield(opts, 'initialization')
+    opts.initialization = 'default';
+end
+
+if ~isfield(opts, 'nGrid1D')
+    opts.nGrid1D = 100000;
+end
+
+if ~isfield(opts, 'thetaCandidates')
+    opts.thetaCandidates = [];
+end
 
 K = size(P, 1);
 
@@ -20,14 +48,20 @@ objective = @(theta) condition_number( ...
 
 %% Coarse exploration of the Givens angle space
 
-% For K=2 this is a full one-dimensional grid over [-pi, pi].
+% For K=2 the default is a full one-dimensional grid over [-pi, pi].
 % For larger K the Givens space has dimension K*(K-1)/2, so we use a
 % random exploration and then refine the best candidates locally.
 
-nGrid1D = 100000;
-
-if nTheta == 1
-    thetaCandidates = linspace(thetaLower, thetaUpper, nGrid1D).';
+if ~isempty(opts.thetaCandidates)
+    thetaCandidates = opts.thetaCandidates;
+    if size(thetaCandidates, 2) ~= nTheta
+        error('opts.thetaCandidates must have K*(K-1)/2 columns.');
+    end
+elseif nTheta == 1 && strcmpi(opts.initialization, 'random')
+    thetaCandidates = thetaLower + ...
+        (thetaUpper-thetaLower).*rand(nRandom, nTheta);
+elseif nTheta == 1
+    thetaCandidates = linspace(thetaLower, thetaUpper, opts.nGrid1D).';
 else
     U = lhsdesign(nRandom, nTheta);
     thetaCandidates = thetaLower + ...
@@ -68,20 +102,50 @@ end
 
 kappas_nRefine = zeros(nRefine,1);
 Q_nRefine =  cell(nRefine, 1);
+thetaInitial_nRefine = zeros(nRefine, nTheta);
+
+if opts.tracePaths
+    thetaPaths = cell(nRefine, 1);
+    kappaPaths = cell(nRefine, 1);
+else
+    thetaPaths = {};
+    kappaPaths = {};
+end
 
 for iStart = 1:nRefine
     theta0 = thetaCandidates(idxSorted(iStart), :);
+    thetaInitial_nRefine(iStart, :) = theta0;
+
+    thetaPathCurrent = [];
+    kappaPathCurrent = [];
 
     if hasFmincon
+        if opts.tracePaths
+            options_i = optimoptions(options, 'OutputFcn', @record_path);
+        else
+            options_i = options;
+        end
+
         [thetaCandidate, kappaCandidate] = fmincon( ...
             objective, theta0, ...
             [], [], [], [], ...
-            thetaLower, thetaUpper, [], options);
+            thetaLower, thetaUpper, [], options_i);
     else
+        if opts.tracePaths
+            options_i = optimset(options, 'OutputFcn', @record_path);
+        else
+            options_i = options;
+        end
+
         unconstrainedObjective = @(theta) objective(wrap_to_pi_local(theta));
         [thetaCandidate, kappaCandidate] = fminsearch( ...
-            unconstrainedObjective, theta0, options);
+            unconstrainedObjective, theta0, options_i);
         thetaCandidate = wrap_to_pi_local(thetaCandidate);
+    end
+
+    if opts.tracePaths
+        thetaPaths{iStart} = thetaPathCurrent;
+        kappaPaths{iStart} = kappaPathCurrent;
     end
 
     kappas_nRefine(iStart) =  kappaCandidate;
@@ -103,4 +167,27 @@ algorithm_results.kappaCandidates = kappaCandidates;
 algorithm_results.thetaCandidates = thetaCandidates;
 algorithm_results.kappas_nRefine = kappas_nRefine;
 algorithm_results.Q_nRefine = Q_nRefine;
+algorithm_results.thetaInitial_nRefine = thetaInitial_nRefine;
+algorithm_results.thetaPaths = thetaPaths;
+algorithm_results.kappaPaths = kappaPaths;
+
+    function stop = record_path(theta, optimValues, state)
+        stop = false;
+
+        if strcmp(state, 'init') || strcmp(state, 'iter')
+            thetaRow = theta(:).';
+
+            if ~hasFmincon
+                thetaRow = wrap_to_pi_local(thetaRow);
+            end
+
+            thetaPathCurrent(end+1, :) = thetaRow;
+
+            if isfield(optimValues, 'fval')
+                kappaPathCurrent(end+1, 1) = optimValues.fval;
+            else
+                kappaPathCurrent(end+1, 1) = objective(thetaRow);
+            end
+        end
+    end
 end
