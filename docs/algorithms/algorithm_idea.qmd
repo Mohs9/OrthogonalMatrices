@@ -80,11 +80,8 @@ $${#eq-optimizationProblem}
 
 where $p\in\{1,\infty\}$. The case $p=2$ is excluded because, under the Euclidean norm, $\kappa_2(PQ)=\kappa_2(P)$; hence, the objective function does not depend on $Q$.
 
-# Algorithm Riemman Mainfolds...
 
-
-
-
+# Algorithm Riemman Mainfolds
 
 ## Gradient Descent
 
@@ -568,6 +565,58 @@ value does not reveal a small number of repeated solutions.
 
 
 
+## Scaling vrs Rotation
+
+
+For diagonal scalings, Bauer (1963) showed that, in the maximum norm, an optimal scaling can be characterized by the equality of the relevant absolute row sums. 
+
+$$
+\min_{D > 0 \text{ diagonal}} \kappa_\infty(AD) = \big\|\,|A||A^{-1}|\big\|_\infty ,
+$$
+
+attained when the rows of $AD$ are equilibrated, $|D^{-1}A|\,e = e$.
+
+This suggests asking whether orthogonal transformations produce an analogous balancing phenomenon:
+
+ **Optimality.** Do minimizers of $\kappa_\infty(PQ)$ balance the row sums, fully or partially?
+
+Proposition  answers the second only partially, and in a way that departs from Bauer's picture.
+
+## Proposition 1
+
+Let $P \in \mathbb{R}^{K\times K}$ be nonsingular, let $\kappa(Q) = \kappa_\infty(PQ)$, and let
+
+$$
+I(Q) = \arg\max_i \, u_i(Q), \qquad J(Q) = \arg\max_j \, v_j(Q)
+$$
+
+be the sets of dominant rows of $PQ$ and of $(PQ)^{-1} = Q^\top P^{-1}$, respectively.
+
+Let $Q^*$ be a **local** minimizer of $\kappa$ on $O(K)$ (in particular, any global minimizer). Then at least one of the following holds:
+
+1. **(Zero in the direct factor.)** $I(Q^*) = \{i\}$ is a singleton and the dominant row $e_i^\top P Q^*$ has at least one zero entry.
+2. **(Zero in the inverse factor.)** $J(Q^*) = \{j\}$ is a singleton and the dominant row $e_j^\top Q^{*\top} P^{-1}$ has at least one zero entry.
+3. **(Tie in the direct factor.)** $|I(Q^*)| \ge 2$: two or more rows of $PQ^*$ attain $\|PQ^*\|_\infty$.
+4. **(Tie in the inverse factor.)** $|J(Q^*)| \ge 2$: two or more rows of $Q^{*\top}P^{-1}$ attain $\|Q^{*\top}P^{-1}\|_\infty$.
+
+Equivalently, let $R \subset O(K)$ be the set of $Q
+
+## Remarks
+
+**Necessary, not sufficient.** The theorem restricts *where* minimizers can be. Points satisfying 1–4 are candidates; many of them are not minimizers.
+
+**Only dominant rows matter.** Zeros in non-dominant rows, and ties among non-dominant rows, play no role.
+
+
+**Interpretation of conditions 1–2.** Row $i$ of $PQ$ has fixed Euclidean norm $\|p_i\|_2$, and $\|w\|_1 \ge \|w\|_2$ with equality iff $w$ has a single nonzero entry. Zeros in the dominant row therefore reduce its absolute row sum. In terms of the columns $q_m$ of $Q$:
+
+$$
+(PQ)_{im} = 0 \iff q_m \perp p_i, \qquad (Q^\top P^{-1})_{jm} = 0 \iff q_j \perp P^{-1} e_m .
+$$
+
+**The case $K = 2$.** Every $Q \in O(2)$ is $Q(\theta)$ or $Q(\theta)\operatorname{diag}(1,-1)$, where $Q(\theta)$ is the rotation by $\theta$. Since $\operatorname{diag}(1,-1)$ and $Q(\pi/2)$ are signed permutations, it suffices to take $\theta \in [0, \pi/2)$. Each entry of $A$ and $B$ has the form $a\cos\theta + b\sin\theta$, and on each interval with fixed signs, each condition 1–4 reduces to an equation of the same form. Barring degenerate cases in which such an expression vanishes identically, the candidate set is therefore finite and explicit, and the global minimum is the smallest value of $\kappa$ on it. 
+
+
 # Appendix {#sec-appendix .appendix}
 
 ## Intuition of norms
@@ -587,3 +636,95 @@ To understand the induced $p$-norm, we must first remember that changing the val
 
 
 ![“Unit sphere” using different $p$-norms](figs/norms.png){#fig-norms width="50%"}
+
+
+## Proof of proposition 
+
+
+## Proof
+
+### Step 1: Local product representation on $R$
+
+Let $Q_0 \in R$. Then $I(Q_0) = \{i\}$, $J(Q_0) = \{j\}$, and all entries of the dominant rows $e_i^\top P Q_0$ and $e_j^\top Q_0^\top P^{-1}$ are nonzero. Let
+
+$$
+\sigma = \operatorname{sign}\!\big(Q_0^\top p_i\big) \in \{\pm1\}^K, \qquad \tau = \operatorname{sign}\!\big(P^{-\top} Q_0 e_j\big) \in \{\pm1\}^K
+$$
+
+be the sign vectors of these two rows. All entries of $A(Q)$ and $B(Q)$ depend continuously on $Q$, and every defining condition of $R$ is a strict inequality ($u_i > u_k$ for $k \ne i$, $v_j > v_k$ for $k \ne j$, and each entry of the two dominant rows nonzero). Hence there is an open neighbourhood $U \subset R$ of $Q_0$ on which the dominant rows remain $i$ and $j$ and their sign vectors remain $\sigma$ and $\tau$. On $U$:
+
+$$
+\|A(Q)\|_\infty = u_i(Q) = p_i^\top Q\,\sigma, \qquad
+\|B(Q)\|_\infty = v_j(Q) = e_j^\top Q^\top P^{-1}\tau = (P^{-1}\tau)^\top Q\, e_j .
+$$
+
+Setting $x_1 = p_i$, $y_1 = \sigma$, $x_2 = P^{-1}\tau$, $y_2 = e_j$ (all nonzero), we obtain on $U$
+
+$$
+\kappa(Q) = \ell_1(Q)\,\ell_2(Q), \qquad \ell_k(Q) = x_k^\top Q\, y_k > 0 .
+$$
+
+### Step 2: Derivatives along one-parameter subgroups
+
+For $S^\top = -S$ consider the curve $t \mapsto Q_0 e^{tS} \in O(K)$. With $a_k = Q_0^\top x_k$,
+
+$$
+\frac{d}{dt}\,\ell_k(Q_0 e^{tS})\Big|_{t=0} = a_k^\top S\, y_k = \langle S,\ a_k y_k^\top\rangle = \langle S,\ \operatorname{skew}(a_k y_k^\top)\rangle,
+$$
+
+where the last equality holds because a skew-symmetric matrix is Frobenius-orthogonal to every symmetric matrix.
+
+**Lemma.** For nonzero $a, y \in \mathbb{R}^K$, $\operatorname{skew}(a y^\top) = 0$ if and only if $a$ and $y$ are parallel. Otherwise $\operatorname{skew}(a y^\top)$ has rank $2$ and range $\operatorname{span}(a, y)$.
+
+*Proof.* $(a y^\top - y a^\top)v = (y^\top v)\,a - (a^\top v)\,y$, so the range lies in $\operatorname{span}(a,y)$, and the matrix vanishes when $a \parallel y$. If $a, y$ are independent, choose $v \perp a$ with $y^\top v \ne 0$ to obtain a nonzero multiple of $a$ in the range, and $v \perp y$ with $a^\top v \ne 0$ to obtain a nonzero multiple of $y$. Hence the range is all of $\operatorname{span}(a,y)$. $\square$
+
+### Step 3: A local minimizer in $R$ would be a critical point
+
+Suppose, for contradiction, that $Q_0 \in R$ is a local minimizer of $\kappa$. On $U$ the function $g = \log \ell_1 + \log \ell_2 = \log\kappa$ is smooth and also has a local minimum at $Q_0$. Hence its derivative along every curve $Q_0 e^{tS}$ vanishes:
+
+$$
+\langle S, W\rangle = 0 \ \ \forall\, S \in \mathfrak{so}(K), \qquad
+W = \frac{\operatorname{skew}(a_1 y_1^\top)}{\ell_1(Q_0)} + \frac{\operatorname{skew}(a_2 y_2^\top)}{\ell_2(Q_0)} .
+$$
+
+Since $W$ is itself skew-symmetric, taking $S = W$ gives $W = 0$. Hence either both skew parts vanish (Case A) or both are nonzero and negatively proportional (Case B).
+
+### Step 4, Case A: both skew parts vanish
+
+By the Lemma, $a_1 \parallel y_1$ and $a_2 \parallel y_2$. Since $\ell_k(Q_0) = a_k^\top y_k > 0$ and $\|a_k\| = \|x_k\|$, we get $\ell_k(Q_0) = \|x_k\|\,\|y_k\|$, which by Cauchy–Schwarz is the maximum of $\ell_k$ over $O(K)$.
+
+Let $\hat y = y_1/\|y_1\|$, pick a unit vector $w \perp \hat y$ (possible since $K \ge 2$), and set $S = \hat y w^\top - w \hat y^\top$. Then $S\hat y = -w$ and $Sw = \hat y$, so $e^{tS}\hat y = \cos t\,\hat y - \sin t\, w$. Because $a_1 \parallel \hat y$ and $a_1 \perp w$,
+
+$$
+\ell_1(Q_0 e^{tS}) = \|y_1\|\, a_1^\top(\cos t\,\hat y - \sin t\, w) = \|x_1\|\,\|y_1\| \cos t < \ell_1(Q_0) \quad (0<|t|<\pi/2).
+$$
+
+Also $0 < \ell_2(Q_0 e^{tS}) \le \ell_2(Q_0)$ for small $|t|$. Hence $\kappa(Q_0 e^{tS}) < \kappa(Q_0)$ for all small $t \neq 0$, with $Q_0 e^{tS} \in U$. This contradicts local minimality.
+
+### Step 5, Case B: both skew parts are nonzero
+
+From $W = 0$ we have $\operatorname{skew}(a_1 y_1^\top) = -\tfrac{\ell_1}{\ell_2}\operatorname{skew}(a_2 y_2^\top)$. By the Lemma both have rank $2$ with equal ranges:
+
+$$
+\Pi := \operatorname{span}(a_1, y_1) = \operatorname{span}(a_2, y_2), \qquad \dim \Pi = 2 .
+$$
+
+Let $\{b_1, b_2\}$ be an orthonormal basis of $\Pi$ and $S = b_2 b_1^\top - b_1 b_2^\top$. Then $e^{tS}$ rotates $\Pi$ by angle $t$ and fixes $\Pi^\perp$. Since $a_k, y_k \in \Pi$,
+
+$$
+\ell_k(Q_0 e^{tS}) = a_k^\top e^{tS} y_k = \|x_k\|\,\|y_k\|\cos(t + \varphi_k),
+\qquad \cos\varphi_k = \frac{\ell_k(Q_0)}{\|x_k\|\,\|y_k\|} > 0 .
+$$
+
+Define $h(t) = \log \kappa(Q_0 e^{tS}) = \text{const} + \log\cos(t+\varphi_1) + \log\cos(t+\varphi_2)$ for small $|t|$. By Step 3, $h'(0) = \langle S, W\rangle = 0$, and
+
+$$
+h''(0) = -\sec^2\varphi_1 - \sec^2\varphi_2 < 0 .
+$$
+
+So $t = 0$ is a strict local maximum of $h$: $\kappa(Q_0 e^{tS}) < \kappa(Q_0)$ for small $t \ne 0$, with $Q_0 e^{tS} \in U$. This again contradicts local minimality.
+
+### Step 6: Conclusion
+
+Both cases are impossible, so no point of $R$ is a local minimizer of $\kappa$. Any local minimizer, and in particular any global minimizer, lies in $O(K) \setminus R$, i.e. satisfies at least one of conditions 1–4. $\blacksquare$
+

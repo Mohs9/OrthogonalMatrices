@@ -7,6 +7,8 @@ function algorithm_results = givens_algorithm(P,  nRandom, nRefine, norma, opts)
 %                   'random' uses random starts for K=2.
 %   nGrid1D         number of K=2 grid points for default initialization.
 %   thetaCandidates user-supplied candidate starts, one row per start.
+%   diagnosticTol   relative tolerance for active row diagnostics.
+%   displaySummary  true displays [u, v] and active-row counts at the end.
 
 if nargin < 5
     opts = struct();
@@ -26,6 +28,14 @@ end
 
 if ~isfield(opts, 'thetaCandidates')
     opts.thetaCandidates = [];
+end
+
+if ~isfield(opts, 'diagnosticTol')
+    opts.diagnosticTol = 1e-8;
+end
+
+if ~isfield(opts, 'displaySummary')
+    opts.displaySummary = true;
 end
 
 K = size(P, 1);
@@ -103,6 +113,8 @@ end
 kappas_nRefine = zeros(nRefine,1);
 Q_nRefine =  cell(nRefine, 1);
 thetaInitial_nRefine = zeros(nRefine, nTheta);
+emptyResult = empty_solution_diagnostics();
+local_results = repmat(emptyResult, nRefine, 1);
 
 if opts.tracePaths
     thetaPaths = cell(nRefine, 1);
@@ -149,13 +161,23 @@ for iStart = 1:nRefine
     end
 
     kappas_nRefine(iStart) =  kappaCandidate;
-    Q_nRefine{iStart} = construct_Givens_matrices(thetaCandidate,K);
+    QCandidate = construct_Givens_matrices(thetaCandidate,K);
+    Q_nRefine{iStart} = QCandidate;
+    local_results(iStart) = solution_diagnostics(QCandidate);
 
     if kappaCandidate < kappa_best
         kappa_best = kappaCandidate;
         theta_best = thetaCandidate;
-        Q_best = construct_Givens_matrices(theta_best, K);
+        Q_best = QCandidate;
     end
+end
+
+best_result = solution_diagnostics(Q_best);
+
+if nRefine > 0
+    final_results = [best_result; local_results];
+else
+    final_results = best_result;
 end
 
 algorithm_results = struct();
@@ -170,6 +192,19 @@ algorithm_results.Q_nRefine = Q_nRefine;
 algorithm_results.thetaInitial_nRefine = thetaInitial_nRefine;
 algorithm_results.thetaPaths = thetaPaths;
 algorithm_results.kappaPaths = kappaPaths;
+algorithm_results.best_result = best_result;
+algorithm_results.local_results = local_results;
+algorithm_results.results = final_results;
+
+if opts.displaySummary
+    for jResult = 1:numel(final_results)
+        fprintf('\nRetained solution %d\n', jResult)
+        disp('[u, v] =')
+        disp([final_results(jResult).u, final_results(jResult).v])
+        fprintf('numel(active_u): %d\n', numel(final_results(jResult).active_u))
+        fprintf('numel(active_v): %d\n', numel(final_results(jResult).active_v))
+    end
+end
 
     function stop = record_path(theta, optimValues, state)
         stop = false;
@@ -189,5 +224,39 @@ algorithm_results.kappaPaths = kappaPaths;
                 kappaPathCurrent(end+1, 1) = objective(thetaRow);
             end
         end
+    end
+
+    function result = solution_diagnostics(Qstar)
+        e = ones(K, 1);
+        u = abs(P*Qstar)*e;
+        v = abs(Qstar'/P)*e;
+        max_u = max(u);
+        max_v = max(v);
+        active_u = find(abs(u-max_u) <= ...
+            opts.diagnosticTol*max(1, abs(max_u)));
+        active_v = find(abs(v-max_v) <= ...
+            opts.diagnosticTol*max(1, abs(max_v)));
+
+        result = struct();
+        result.Q = Qstar;
+        result.kappa = max_u*max_v;
+        result.u = u;
+        result.v = v;
+        result.max_u = max_u;
+        result.max_v = max_v;
+        result.active_u = active_u;
+        result.active_v = active_v;
+    end
+
+    function result = empty_solution_diagnostics()
+        result = struct( ...
+            'Q', [], ...
+            'kappa', [], ...
+            'u', [], ...
+            'v', [], ...
+            'max_u', [], ...
+            'max_v', [], ...
+            'active_u', [], ...
+            'active_v', []);
     end
 end

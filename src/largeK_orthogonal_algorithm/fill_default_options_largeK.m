@@ -65,4 +65,13 @@ end
 if ~isfield(opts, 'TOL_IMPROVEMENT') || isempty(opts.TOL_IMPROVEMENT)
     opts.TOL_IMPROVEMENT = 1e-12;
 end
+
+% Diagnostics for final candidate solutions.
+if ~isfield(opts, 'diagnosticTol') || isempty(opts.diagnosticTol)
+    opts.diagnosticTol = 1e-8;
+end
+
+if ~isfield(opts, 'displaySummary') || isempty(opts.displaySummary)
+    opts.displaySummary = true;
+end
 end

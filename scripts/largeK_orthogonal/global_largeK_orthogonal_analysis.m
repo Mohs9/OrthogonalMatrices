@@ -11,13 +11,13 @@ tic
 
 % Fixed reproducible covariance matrix.
 rng(20, 'twister')
-K = 30;
+K = 2;
 M = randn(K, K);
 Sigma_e = M*M' + 0.25*eye(K);
-P = chol(Sigma_e, 'lower');
+P = chol(Sigma_e, 'upper');
 
 % Number of independent searches for the same Sigma_e.
-N = 50;
+N = 100;
 
 % Store outputs under a folder named after the matrix dimension.
 plotDir = fullfile('plots', sprintf('K=%d', K));

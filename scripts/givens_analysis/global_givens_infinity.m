@@ -8,16 +8,19 @@
 % ---------------------------------------------------------------------
 
 activate
-%rng(1, 'twister')
+rng(20, 'twister')
 tic
 
 % Number of independent searches to run for the same matrix P.
-N = 1000;
+N = 10;
 
 % Generate one lower-triangular test matrix P. The objective is evaluated as
 % kappa_inf(P*Q).
-P = tril(randn(6,6));
-
+rng(21, 'twister')
+K = 3;
+M = randn(K, K);
+Sigma_e = M*M' + 0.25*eye(K);
+P = chol(Sigma_e, 'upper');
 % Regenerate P if it is numerically singular.
 while rcond(P) < eps
     P = tril(randn(3,3));

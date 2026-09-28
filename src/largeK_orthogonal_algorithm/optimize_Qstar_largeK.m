@@ -14,6 +14,10 @@ function result = optimize_Qstar_largeK(Sigma_e, norm_func, opts)
 %
 %   Output:
 %     result    structure with Q_star, kappa_star, diagnostics, and traces.
+%
+%   Additional opts fields:
+%     diagnosticTol   relative tolerance for active row diagnostics.
+%     displaySummary  true displays [u, v] and active-row counts at the end.
 
 if nargin < 2 || isempty(norm_func)
     norm_func = @norm_1;
@@ -80,6 +84,8 @@ best_haar_log_value = haar_values_sorted(1);
 local_values = zeros(nElite, 1);
 Q_local = zeros(K, K, nElite);
 local_info = repmat(struct('riemannian', [], 'givens', []), nElite, 1);
+emptyResult = empty_solution_diagnostics();
+local_results = repmat(emptyResult, nElite, 1);
 
 for iElite = 1:nElite
     Q0 = Q_haar(:,:,elite_indices(iElite));
@@ -94,6 +100,7 @@ for iElite = 1:nElite
     local_values(iElite) = kappa_best;
     local_info(iElite).riemannian = riem_info;
     local_info(iElite).givens = givens_info;
+    local_results(iElite) = solution_diagnostics(Q_best);
 end
 
 % ---------------------------------------------------------------------
@@ -110,6 +117,8 @@ det_Qstar = det(Q_star);
 objective_error = abs(kappa_direct - kappa_star);
 [kappa_P, ~] = objective_exact(eye(K), P, R, norm_func);
 improvement = (kappa_P - kappa_star)/kappa_P;
+best_result = solution_diagnostics(Q_star);
+final_results = [best_result; local_results];
 
 
 % Package results and traces for later analysis.
@@ -121,6 +130,9 @@ result.best_haar_log_value = best_haar_log_value;
 result.local_values = local_values;
 result.Q_local = Q_local;
 result.local_info = local_info;
+result.best_result = best_result;
+result.local_results = local_results;
+result.results = final_results;
 result.P = P;
 result.R = R;
 result.kappa_P = kappa_P;
@@ -135,4 +147,48 @@ result.haar_values = haar_values;
 result.elite_indices = elite_indices;
 result.opts = opts;
 result.norm_func = func2str(norm_func);
+
+if opts.displaySummary
+    for jResult = 1:numel(final_results)
+        fprintf('\nRetained solution %d\n', jResult)
+        disp('[u, v] =')
+        disp([final_results(jResult).u, final_results(jResult).v])
+        fprintf('numel(active_u): %d\n', numel(final_results(jResult).active_u))
+        fprintf('numel(active_v): %d\n', numel(final_results(jResult).active_v))
+    end
+end
+
+    function candidateResult = solution_diagnostics(Qstar)
+        e = ones(K, 1);
+        u = abs(P*Qstar)*e;
+        v = abs(Qstar'/P)*e;
+        max_u = max(u);
+        max_v = max(v);
+        active_u = find(abs(u-max_u) <= ...
+            opts.diagnosticTol*max(1, abs(max_u)));
+        active_v = find(abs(v-max_v) <= ...
+            opts.diagnosticTol*max(1, abs(max_v)));
+
+        candidateResult = struct();
+        candidateResult.Q = Qstar;
+        candidateResult.kappa = max_u*max_v;
+        candidateResult.u = u;
+        candidateResult.v = v;
+        candidateResult.max_u = max_u;
+        candidateResult.max_v = max_v;
+        candidateResult.active_u = active_u;
+        candidateResult.active_v = active_v;
+    end
+
+    function candidateResult = empty_solution_diagnostics()
+        candidateResult = struct( ...
+            'Q', [], ...
+            'kappa', [], ...
+            'u', [], ...
+            'v', [], ...
+            'max_u', [], ...
+            'max_v', [], ...
+            'active_u', [], ...
+            'active_v', []);
+    end
 end
